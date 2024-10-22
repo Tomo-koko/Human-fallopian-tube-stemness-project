@@ -1,0 +1,84 @@
+# Library
+library(Seurat)
+library(hdf5r)
+library(escape)
+library(ggplot2)
+library(cowplot)
+library(dplyr)
+library(reshape2)
+library(RColorBrewer)
+library(gplots)
+library(stringr)
+library(viridis)
+library(tidyverse)
+
+#Reading an RDS file
+sc_len <- readRDS("~/Lengyel/dc633839-b1cc-41e4-84a6-83ddfe129f13.rds")
+
+# Fixing a seed
+set.seed(42)
+
+# Plotting UMAP
+plot_umap_len <- DimPlot(sc_len, group.by = "cell_type")
+plot_umap_len
+FeaturePlot(sc_len, features = c("ENSG00000085465", "ENSG00000129654"))
+
+epi_filter_len <- subset(sc_len, cell_type == c("secretory cell", "ciliated epithelial cell"))
+epi_filter_len <- ScaleData(epi_filter_len)
+epi_filter_len <- FindVariableFeatures(epi_filter_len, selection.method = "vst", nfeatures = 2000)
+epi_filter_len <- RunPCA(epi_filter_len, features = VariableFeatures(object = epi_filter_len))
+epi_filter_len <- FindNeighbors(epi_filter_len, dim = 1:30)
+epi_filter_len <- FindClusters(epi_filter_len, resolution = 0.5)
+epi_filter_len <- RunUMAP(epi_filter_len, dims = 1:30)
+plot_epilenumap <- DimPlot(epi_filter_len, label = TRUE)
+plot_epilenumap
+
+FeaturePlot(epi_filter_len, features = c("ENSG00000085465", "ENSG00000129654"))
+VlnPlot(epi_filter_len, features = c("ENSG00000085465", "ENSG00000129654"), sort = TRUE)
+
+genesets <- list(Imaeda = c("ENSG00000007062", "ENSG00000008517", "ENSG00000011422", "ENSG00000019582", "ENSG00000026025", "ENSG00000070190", "ENSG00000100100", "ENSG00000104951", "ENSG00000108244", "ENSG00000114638", "ENSG00000115009", "ENSG00000117525", "ENSG00000122861", "ENSG00000124102", "ENSG00000124107", "ENSG00000124875", "ENSG00000126709", "ENSG00000127324", "ENSG00000130513", "ENSG00000131203", "ENSG00000134339", "ENSG00000134827", "ENSG00000136689", "ENSG00000145113", "ENSG00000147883", "ENSG00000151882", "ENSG00000162645", "ENSG00000162896", "ENSG00000163898", "ENSG00000163975", "ENSG00000165507", "ENSG00000165949", "ENSG00000166920", "ENSG00000169035", "ENSG00000172602", "ENSG00000173432", "ENSG00000181634", "ENSG00000184254", "ENSG00000188293", "ENSG00000189325", "ENSG00000196126", "ENSG00000196188", "ENSG00000196735", "ENSG00000197632", "ENSG00000198502", "ENSG00000204287", "ENSG00000204642", "ENSG00000213886", "ENSG00000231389", "ENSG00000234745", "ENSG00000237541", "ENSG00000243649"))
+
+ES.epi_filter_len <- enrichIt(obj = epi_filter_len@assays$RNA$counts, 
+                              gene.sets = genesets, 
+                              groups = 3000, cores = 2, 
+                              min.size = 1, ssGSEA.norm = TRUE)
+
+epi_filter_len <- AddMetaData(epi_filter_len, metadata = ES.epi_filter_len)
+FeaturePlot(epi_filter_len, features = colnames(ES.epi_filter_len), cols = c("green", "red"))
+VlnPlot(epi_filter_len, features = colnames(ES.epi_filter_len), sort = TRUE)
+
+len.Imaeda.markers <- FindMarkers(epi_filter_len, ident.1 = c(4, 9), ident.2 = c(1, 6, 8, 11), min.pct = 0.25)
+
+VlnPlot(epi_filter_len, features = colnames(ES.epi_filter_len), sort = TRUE, idents = c(1, 2, 3, 4, 6, 7, 8, 9, 10, 11, 12))
+AverageExpression(epi_filter_len, features = c("ENSG00000021355"))
+
+#Creating pdf and csv files
+pdf("~/output/Lengyel_epi_UMAP.pdf")
+DimPlot(epi_filter_len, label = TRUE)
+dev.off()
+
+pdf("~/output/Lengyel_epi_FeaturePlot_OVGP1.pdf")
+FeaturePlot(epi_filter_len, features = c("ENSG00000085465"))
+dev.off()
+
+pdf("~/output/Lengyel_epi_VlnPlot_OVGP1.pdf")
+VlnPlot(epi_filter_len, features = c("ENSG00000085465"), sort = TRUE)
+dev.off()
+
+pdf("~/output/Lengyel_epi_FeaturePlot_FOXJ1.pdf")
+FeaturePlot(epi_filter_len, features = c("ENSG00000129654"))
+dev.off()
+
+pdf("~/output/Lengyel_epi_VlnPlot_FOXJ1.pdf")
+VlnPlot(epi_filter_len, features = c("ENSG00000129654"), sort = TRUE)
+dev.off()
+
+pdf("~/output/Lengyel_epi_FeaturePlot_Imaeda.pdf")
+FeaturePlot(epi_filter_len, features = colnames(ES.epi_filter_len), cols = c("green", "red"))
+dev.off()
+
+pdf("~/output/Lengyel_sec_VlnPlot_Imaeda.pdf")
+VlnPlot(epi_filter_len, features = colnames(ES.epi_filter_len), sort = TRUE, idents = c(1, 2, 3, 4, 6, 7, 8, 9, 10, 11, 12))
+dev.off()
+
+write.csv(len.Imaeda.markers, file = "~/output/len.Imaeda.markers.csv")
