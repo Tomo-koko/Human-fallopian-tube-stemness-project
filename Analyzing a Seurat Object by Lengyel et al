@@ -12,7 +12,7 @@ library(stringr)
 library(viridis)
 library(tidyverse)
 
-#Reading an RDS file
+# Reading an RDS file
 sc_len <- readRDS("~/Lengyel/dc633839-b1cc-41e4-84a6-83ddfe129f13.rds")
 
 # Fixing a seed
@@ -23,6 +23,7 @@ plot_umap_len <- DimPlot(sc_len, group.by = "cell_type")
 plot_umap_len
 FeaturePlot(sc_len, features = c("ENSG00000085465", "ENSG00000129654"))
 
+# Re-analyzing the Seurat object
 epi_filter_len <- subset(sc_len, cell_type == c("secretory cell", "ciliated epithelial cell"))
 epi_filter_len <- ScaleData(epi_filter_len)
 epi_filter_len <- FindVariableFeatures(epi_filter_len, selection.method = "vst", nfeatures = 2000)
@@ -52,7 +53,7 @@ len.Imaeda.markers <- FindMarkers(epi_filter_len, ident.1 = c(4, 9), ident.2 = c
 VlnPlot(epi_filter_len, features = colnames(ES.epi_filter_len), sort = TRUE, idents = c(1, 2, 3, 4, 6, 7, 8, 9, 10, 11, 12))
 AverageExpression(epi_filter_len, features = c("ENSG00000021355"))
 
-#Creating pdf and csv files
+# Creating pdf and csv files
 pdf("~/output/Lengyel_epi_UMAP.pdf")
 DimPlot(epi_filter_len, label = TRUE)
 dev.off()
