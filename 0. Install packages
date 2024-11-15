@@ -1,0 +1,7 @@
+# R version 4.2.1
+
+# Install BioManager and remotes
+install.packages("BiocManager")
+install.packages("remotes")
+
+# 
