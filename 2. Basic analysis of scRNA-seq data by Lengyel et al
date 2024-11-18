@@ -1,0 +1,71 @@
+# Library
+library(Seurat)
+library(cowplot)
+library(reshape2)
+library(RColorBrewer)
+library(gplots)
+library(viridis)
+library(tidyverse)
+
+# Fix seed and figure font
+set.seed(42)
+theme_set(theme_gray(base_family = "Arial"))
+
+# Plot UMAP to confirm the dataset
+DimPlot(sc_len, group.by = "cell_type")
+FeaturePlot(sc_len, features = c("ENSG00000119888",  ## EpCAM -epithelial cell marker
+                                 "ENSG00000135480",  ## KRT7 -secretory cell marker
+                                 "ENSG00000125618",  ## PAX8 -secretory cell marker
+                                 "ENSG00000085465",  ## OVGP1 -secretory cell marker
+                                 "ENSG00000129654"   ## FOXJ1 -ciliated cell marker
+                                 ))
+
+# Extract epithelial cells and re-run data scaling
+epi_filter_len <- subset(sc_len, cell_type == c("secretory cell", "ciliated epithelial cell"))
+epi_filter_len <- ScaleData(epi_filter_len)
+epi_filter_len <- FindVariableFeatures(epi_filter_len, selection.method = "vst", nfeatures = 2000)
+epi_filter_len <- RunPCA(epi_filter_len, features = VariableFeatures(object = epi_filter_len))
+epi_filter_len <- FindNeighbors(epi_filter_len, dim = 1:30)
+epi_filter_len <- FindClusters(epi_filter_len, resolution = 0.5)
+epi_filter_len <- RunUMAP(epi_filter_len, dims = 1:30)
+
+  ## rename clusters to "cluster_X" (e.g. "g0" -> "cluster_1", "g1" -> "cluster_2")
+  levels(epi_filter_len$seurat_clusters) <- paste("cluster", 1:length(levels(epi_filter_len$seurat_clusters)), sep = "_")
+  Idents(epi_filter_len) <- "seurat_clusters"
+
+DimPlot(epi_filter_len)
+
+# Basic data of epi_filter_len
+ncol(epi_filter_len)  ## cell count of epithelial cells -2382 cells
+cluster_info <- Idents(epi_filter_len)
+length(unique(cluster_info))  ## number of cluster -12 clusters
+table(cluster_info)  ## cell count in each cluster -1: 427, 2: 401, 3: 284, 4: 282, 5: 180, 6: 172, 7: 167, 8: 144, 9: 118, 10: 77, 11: 69, 12: 61
+epi_filter_len$donor_id_short <- substr(epi_filter_len$donor_id, 1, 2)  ## remove detailed donor id (still able to tell)
+DimPlot(epi_filter_len, group.by = "donor_id_short") +
+ labs(title = NULL)
+
+# Analyze the expression of several fallopian tube epithelial cell marker
+FeaturePlot(epi_filter_len, features = c("ENSG00000125618",  ## PAX8 -secretory cell marker
+                                         "ENSG00000135480",  ## KRT7 -secretory cell marker
+                                         "ENSG00000085465",  ## OVGP1 -secretory cell marker
+                                         "ENSG00000129654"   ## FOXJ1 -ciliated cell marker
+                                        ))
+
+# Trajectory analysis
+
+
+
+
+
+------------------------------
+# Analyze resemblance among clusters
+cluster_averages_len <- AggregateExpression(epi_filter_len, group.by = "seurat_clusters")
+cluster_averages_matrix <- as.matrix(cluster_averages_len$RNA) 
+cluster_dist_len <- dist(t(cluster_averages_matrix))
+cluster_hclust_len <- hclust(cluster_dist_len)
+plot(cluster_hclust_len, main = "Cluster Dendrogram", xlab = "Clusters", sub = "")
+
+
+
+
+
