@@ -50,22 +50,3 @@ FeaturePlot(epi_filter_len, features = c("ENSG00000125618",  ## PAX8 -secretory 
                                          "ENSG00000085465",  ## OVGP1 -secretory cell marker
                                          "ENSG00000129654"   ## FOXJ1 -ciliated cell marker
                                         ))
-
-# Trajectory analysis
-
-
-
-
-
-------------------------------
-# Analyze resemblance among clusters
-cluster_averages_len <- AggregateExpression(epi_filter_len, group.by = "seurat_clusters")
-cluster_averages_matrix <- as.matrix(cluster_averages_len$RNA) 
-cluster_dist_len <- dist(t(cluster_averages_matrix))
-cluster_hclust_len <- hclust(cluster_dist_len)
-plot(cluster_hclust_len, main = "Cluster Dendrogram", xlab = "Clusters", sub = "")
-
-
-
-
-
