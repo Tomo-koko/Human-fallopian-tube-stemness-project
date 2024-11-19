@@ -1,0 +1,67 @@
+# Library
+library(hdf5r)
+library(Seurat)
+library(cowplot)
+library(reshape2)
+library(RColorBrewer)
+library(gplots)
+library(viridis)
+library(tidyverse)
+library(lme4)
+library(limma)
+library(S4Vectors)
+library(BiocGenerics)
+library(DelayedArray)
+library(DelayedMatrixStats)
+library(SingleCellExperiment)
+library(SummarizedExperiment)
+library(batchelor)
+library(HDF5Array)
+library(terra)
+library(ggrastr)
+library(monocle3)
+
+# Fix seed and figure font
+set.seed(42)
+theme_set(theme_gray(base_family = "Arial"))
+
+# Load scRNA-seq data by Lengyel et al
+url_len <- "https://datasets.cellxgene.cziscience.com/9e7dd889-c863-46f9-9ab9-99175e23fd75.rds"
+output_file_len <- "9e7dd889-c863-46f9-9ab9-99175e23fd75.rds"
+download.file(url_len, destfile = output_file_len)
+sc_len <- readRDS(output_file_len)
+
+# Extract epithelial cells and make objects for analysis with monocle3
+epi_filter_len <- subset(sc_len, cell_type == c("secretory cell", "ciliated epithelial cell"))
+counts_len <- GetAssayData(epi_filter_len, assay = "RNA", slot = "counts")
+meta_data_len <- epi_filter_len@meta.data
+cds_len <- new_cell_data_set(
+  counts_len,
+  cell_metadata = meta_data_len
+)
+
+# Trajectory analysis
+cds_len <- preprocess_cds(cds_len, num_dim = 30)
+cds_len <- reduce_dimension(cds_len)
+cds_len <- cluster_cells(cds_len)
+cds_len <- learn_graph(cds_len)
+
+# Attach the UMAP result to the Seurat Object
+umap_coords_len <- reducedDims(cds_len)$UMAP
+umap_coords_df_len <- as.data.frame(umap_coords_len)
+colnames(umap_coords_df_len) <- c("UMAP_1", "UMAP_2")
+umap_coords_df_len$cell_id <- rownames(umap_coords_len)
+umap_coords_df_len <- umap_coords_df_len[match(rownames(epi_filter_len@meta.data), umap_coords_df_len$cell_id), ]
+epi_filter_len[["monocle3_UMAP"]] <- CreateDimReducObject(
+  embeddings = as.matrix(umap_coords_df_len[, c("UMAP_1", "UMAP_2")]),
+  key = "monUMAP_",
+  assay = DefaultAssay(epi_filter_len)
+)
+
+# Attach the cluster information to the Seurat Object
+monocle_clusters_len <- clusters(cds_len)
+monocle_clusters_len <- monocle_clusters_len[rownames(epi_filter_len@meta.data)]
+epi_filter_len@meta.data$monocle3_clusters <- monocle_clusters_len
+
+# Plot UMAP
+DimPlot(epi_filter_len, group.by = "monocle3_clusters", label = TRUE)
