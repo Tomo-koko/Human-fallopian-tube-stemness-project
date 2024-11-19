@@ -1,6 +1,6 @@
 # R version 4.4.1
 
-# Install BioManager and remotes
+# Install BioManager, remotes, and devtools
 install.packages("BiocManager")
 install.packages("remotes")
 install.packages("devtools")
