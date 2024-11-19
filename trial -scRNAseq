@@ -65,3 +65,6 @@ epi_filter_len@meta.data$monocle3_clusters <- monocle_clusters_len
 
 # Plot UMAP
 DimPlot(epi_filter_len, group.by = "monocle3_clusters", label = TRUE)
+
+# Define Domancy Gene Set
+geneset <- list(Domancy_Gene_Set = c())
