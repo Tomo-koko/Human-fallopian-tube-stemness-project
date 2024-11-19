@@ -1,7 +1,6 @@
-# The code files were done under SHIROKANE7
+# The code files were done under SHIROKANE8
 ## qlogin -l s_vmem=128G
-## s5
 ## module use /usr/local/package/modulefiles
 ## module load rstudio
-## module load R/4.2.1
+## module load R/4.4.1
 ## QMLSCENE_DEVICE=softwarecontext rstudio
