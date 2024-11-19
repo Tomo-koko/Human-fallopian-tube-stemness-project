@@ -15,19 +15,12 @@ remotes::install_version("RColorBrewer", version = "1.1-3")
 remotes::install_version("gplots", version = "3.2.0")
 remotes::install_version("viridis", version = "0.6.5")
 remotes::install_version("lme4", version = "1.1-35.5")
-BiocManager::install("escape", version = "3.18") 
-BiocManager::install("limma", version = "3.18")
-BiocManager::install("S4Vectors", version = "3.18") 
-BiocManager::install("BiocGenerics", version = "3.20") 
-BiocManager::install("DelayedArray", version = "3.20") 
-BiocManager::install("DelayedMatrixStats", version = "3.20") 
-BiocManager::install("SingleCellExperiment", version = "3.20") 
-BiocManager::install("SummarizedExperiment", version = "3.20") 
-BiocManager::install("batchelor", version = "3.20") 
-BiocManager::install("HDF5Array", version = "3.20") 
-BiocManager::install("ggrastr", version = "3.20") 
+BiocManager::install("escape", version = "3.17") 
+BiocManager::install("DelayedMatrixStats", version = "3.17") 
+BiocManager::install("batchelor", version = "3.17") 
+BiocManager::install("ggrastr", version = "3.17") 
 
-# SHIROKANE7 needs annoying methods to install some packages...
+# SHIROKANE7 needs an annoying method to install a package terra...
 remotes::install_version("terra", version = "1.7-83", repos = "https://cran.r-project.org", type = "source", configure.args = c(
   "with_sqlite3_lib=/usr/local/package/sqlite3/3.44.2/lib/",
   "--with-proj-lib=/usr/local/package/proj/8.1.1/lib",
@@ -36,4 +29,4 @@ remotes::install_version("terra", version = "1.7-83", repos = "https://cran.r-pr
 ))
 
 # Install packages with certain versions -2
-devtools::install_github("cole-trapnell-lab/monocle3")
+devtools::install_github("cole-trapnell-lab/monocle3@v1.3.1")
