@@ -20,8 +20,8 @@ BiocManager::install("DelayedMatrixStats", version = "3.17")
 BiocManager::install("batchelor", version = "3.17") 
 BiocManager::install("ggrastr", version = "3.17") 
 
-# SHIROKANE7 needs annoying methods to install some packages...
-remotes::install_version("terra", version = "1.7-83", repos = "https://cran.r-project.org", type = "source", configure.args = c(
+# SHIROKANE7 required annoying methods to install some packages...
+remotes::install_version("terra", version = "1.7-83", configure.args = c(
   "with_sqlite3_lib=/usr/local/package/sqlite3/3.44.2/lib/",
   "--with-proj-lib=/usr/local/package/proj/8.1.1/lib",
   "--with-proj-include=/usr/local/package/proj/8.1.1/include",
@@ -29,8 +29,18 @@ remotes::install_version("terra", version = "1.7-83", repos = "https://cran.r-pr
 ))
 
 remotes::install_version("units", version = "0.8-5", configure.args = c(
-  "--with-udunits2-lib=/home/tamurat/udunits/lib/",
-  "--with-udunits2-include=/home/tamurat/udunits/include/"))
+  "--with-udunits2-lib=/home/<username>/udunits/lib/",
+  "--with-udunits2-include=/home/<username>/udunits/include/"
+))
+
+remotes::install_version("sf", version = "1.0-19", configure.args = c(
+  "with_sqlite3_lib=/usr/local/package/sqlite3/3.44.2/lib/",
+  "--with-proj-lib=/usr/local/package/proj/8.1.1/lib",
+  "--with-proj-include=/usr/local/package/proj/8.1.1/include",
+  "--with-geos-config=/usr/local/package/geos/3.12.1/bin/geos-config",
+  "--with-udunits2-lib=/home/<username>/udunits/lib/",
+  "--with-udunits2-include=/home/<username>/udunits/include/"
+))
 
 # Install packages with certain versions -2
 devtools::install_github("cole-trapnell-lab/monocle3@v1.3.1")
