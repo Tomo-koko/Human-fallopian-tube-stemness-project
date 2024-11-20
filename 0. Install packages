@@ -5,6 +5,11 @@ install.packages("BiocManager")
 install.packages("remotes")
 install.packages("devtools")
 
+# Upgrade and install some necessary packages manually in advance (because of the initial setting of SHIROKANE)
+remotes::install_version("Matrix", version = "1.6.4")
+remotes::install_version("SeuratObject", version = "5.0.2", 
+                         lib = "/reshare1/home/<username>/R/x86_64-pc-linux-gnu-library/4.3")  ## You may be asked if you would like to make a new directory for installation
+
 # Install packages with certain versions -1
 remotes::install_version("Seurat", version = "5.1.0")
 remotes::install_version("hdf5r", version = "1.3.11")
