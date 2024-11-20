@@ -62,7 +62,7 @@ cds_len <- new_cell_data_set(
 )
 
 # monocle3 analysis
-cds_len <- preprocess_cds(cds_len, num_dim = 40, method = "PCA")
+cds_len <- preprocess_cds(cds_len, num_dim = 50, method = "PCA")
 cds_len <- reduce_dimension(cds_len, preprocess_method = "PCA", reduction_method = "UMAP")
 cds_len <- cluster_cells(cds_len, reduction_method = "UMAP")
 cds_len <- learn_graph(cds_len, close_loop = FALSE)
