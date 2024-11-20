@@ -103,7 +103,7 @@ epi_filter_len <- AddMetaData(epi_filter_len, metadata = ES.epi_filter_len)
 FeaturePlot(epi_filter_len, reduction = "monocle3_UMAP", features = colnames(ES.epi_filter_len), cols = c("green", "red"))
 VlnPlot(epi_filter_len, group.by = "monocle3_clusters", features = colnames(ES.epi_filter_len))
 
-# Calculating pseudotime
+# Calculate pseudotime
 cds_len <- order_cells(cds_len)  ## define cluster XX as a start point 
 plot_cells(cds_len,
            color_cells_by = "pseudotime",
