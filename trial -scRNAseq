@@ -31,8 +31,26 @@ output_file_len <- "9e7dd889-c863-46f9-9ab9-99175e23fd75.rds"
 download.file(url_len, destfile = output_file_len)
 sc_len <- readRDS(output_file_len)
 
-# Extract epithelial cells and make objects for analysis with monocle3
-epi_filter_len <- subset(sc_len, cell_type == c("secretory cell", "ciliated epithelial cell"))
+# Extract epithelial cells by the expression of EpCAM (ENSG00000119888)
+sc_len@meta.data$cell_type <- NULL
+expression_EpCAM_len <- FetchData(sc_len, vars = c("ENSG00000119888"))
+ggplot(expression_EpCAM_len, aes(x = "", y = ENSG00000119888)) + 
+  geom_violin(fill = "skyblue", color = "black", alpha = 0.5) + 
+  geom_dotplot(binaxis = 'y', stackdir = 'center', dotsize = 0.1, color = "red") + 
+  scale_y_continuous(breaks = seq(0, max(expression_EpCAM_len$ENSG00000119888), by = 0.1)) +    
+  labs(
+    title = "Expression of EpCAM",
+    y = "Expression Level"
+  ) +
+  theme_minimal() +
+  theme(axis.title.x = element_blank()) 
+
+  ## Threshold to define epithelial cells: the expression of EpCAM >= 1
+  counts_data_len <- sc_len@assays$RNA@counts
+  cells_to_keep_len <- colnames(counts_data_len)[counts_data_len["ENSG00000119888", ] >= 1]
+  epi_filter_len <- subset(sc_len, cells = cells_to_keep_len)
+
+# Prepare some objects for monocle3 analysis
 counts_len <- GetAssayData(epi_filter_len, assay = "RNA", layer = "counts")
 gene_metadata <- data.frame(gene_short_name = rownames(counts_len))
 rownames(gene_metadata) <- rownames(counts_len)
@@ -44,10 +62,10 @@ cds_len <- new_cell_data_set(
 )
 
 # Trajectory analysis
-cds_len <- preprocess_cds(cds_len, num_dim = 30)
-cds_len <- reduce_dimension(cds_len)
-cds_len <- cluster_cells(cds_len)
-cds_len <- learn_graph(cds_len)
+cds_len <- preprocess_cds(cds_len, num_dim = 40, method = "PCA")
+cds_len <- reduce_dimension(cds_len, preprocess_method = "PCA", reduction_method = "UMAP")
+cds_len <- cluster_cells(cds_len, reduction_method = "UMAP")
+cds_len <- learn_graph(cds_len, close_loop = FALSE)
 
 # Attach the UMAP result to the Seurat Object
 umap_coords_len <- reducedDims(cds_len)$UMAP
@@ -67,7 +85,29 @@ monocle_clusters_len <- monocle_clusters_len[rownames(epi_filter_len@meta.data)]
 epi_filter_len@meta.data$monocle3_clusters <- monocle_clusters_len
 
 # Plot UMAP
-DimPlot(epi_filter_len, group.by = "monocle3_clusters", label = TRUE)
+DimPlot(epi_filter_len, reduction = "monocle3_UMAP", group.by = "monocle3_clusters", label = TRUE)
+DimPlot(epi_filter_len, reduction = "monocle3_UMAP", group.by = "donor_id", label = TRUE)
 
 # Define Domancy Gene Set
-geneset <- list(Domancy_Gene_Set = c())
+genesets <- list(Dormancy_gene_set = c("ENSG00000007062", "ENSG00000008517", "ENSG00000011422", "ENSG00000019582", "ENSG00000026025", "ENSG00000070190", "ENSG00000100100", "ENSG00000104951", "ENSG00000108244", "ENSG00000114638", "ENSG00000115009", "ENSG00000117525", "ENSG00000122861", "ENSG00000124102", "ENSG00000124107", "ENSG00000124875", "ENSG00000126709", "ENSG00000127324", "ENSG00000130513", "ENSG00000131203", "ENSG00000134339", "ENSG00000134827", "ENSG00000136689", "ENSG00000145113", "ENSG00000147883", "ENSG00000151882", "ENSG00000162645", "ENSG00000162896", "ENSG00000163898", "ENSG00000163975", "ENSG00000165507", "ENSG00000165949", "ENSG00000166920", "ENSG00000169035", "ENSG00000172602", "ENSG00000173432", "ENSG00000181634", "ENSG00000184254", "ENSG00000188293", "ENSG00000189325", "ENSG00000196126", "ENSG00000196188", "ENSG00000196735", "ENSG00000197632", "ENSG00000198502", "ENSG00000204287", "ENSG00000204642", "ENSG00000213886", "ENSG00000231389", "ENSG00000234745", "ENSG00000237541", "ENSG00000243649"))
+
+# Run escape to execute single-cell enrichment analysis
+ES.epi_filter_len <- escape.matrix(epi_filter_len, 
+                                   method = "ssGSEA",
+                                   gene.sets = genesets, 
+                                   groups = 3000, 
+                                   min.size = 5
+                                   )
+
+epi_filter_len <- AddMetaData(epi_filter_len, metadata = ES.epi_filter_len)
+FeaturePlot(epi_filter_len, reduction = "monocle3_UMAP", features = colnames(ES.epi_filter_len), cols = c("green", "red"))
+VlnPlot(epi_filter_len, group.by = "monocle3_clusters", features = colnames(ES.epi_filter_len))
+
+# Calculating pseudotime
+cds_len <- order_cells(cds_len)  ## define cluster XX as a start point 
+plot_cells(cds_len,
+           color_cells_by = "pseudotime",
+           label_cell_groups= FALSE,
+           label_leaves= FALSE,
+           label_branch_points= FALSE,
+           graph_label_size= 1.5)
