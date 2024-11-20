@@ -33,11 +33,14 @@ sc_len <- readRDS(output_file_len)
 
 # Extract epithelial cells and make objects for analysis with monocle3
 epi_filter_len <- subset(sc_len, cell_type == c("secretory cell", "ciliated epithelial cell"))
-counts_len <- GetAssayData(epi_filter_len, assay = "RNA", slot = "counts")
+counts_len <- GetAssayData(epi_filter_len, assay = "RNA", layer = "counts")
+gene_metadata <- data.frame(gene_short_name = rownames(counts_len))
+rownames(gene_metadata) <- rownames(counts_len)
 meta_data_len <- epi_filter_len@meta.data
 cds_len <- new_cell_data_set(
   counts_len,
-  cell_metadata = meta_data_len
+  cell_metadata = meta_data_len,
+  gene_metadata = gene_metadata
 )
 
 # Trajectory analysis
