@@ -59,12 +59,11 @@ ggplot(plot_epi_len, aes(x = Gene1, y = Gene2)) +
     label = paste("EpCAM/CDH1(+/+) epithelial cells:", epithelial_cells_len),
     hjust = 1, vjust = 1, color = "black", size = 5
   )
-expression_EpCAM_len <- FetchData(sc_len, vars = c("ENSG00000119888"), slot = "data")
-expression_CDH1_len <- FetchData(sc_len, vars = c("ENSG00000039068"), slot = "data")
+
   ## Threshold to define epithelial cells: the expression of EpCAM >= 0.1 and CDH >= 0.1
-  counts_data_len <- sc_len@assays$RNA@counts
-  cells_to_keep_len <- colnames(counts_data_len)[
-  counts_data_len["ENSG00000119888", ] >= 0.1 & counts_data_len["ENSG00000039068", ] >= 0.1
+  data_len <- sc_len@assays$RNA@data
+  cells_to_keep_len <- colnames(data_len)[
+  data_len["ENSG00000119888", ] >= 0.1 & data_len["ENSG00000039068", ] >= 0.1
 　]
   epi_filter_len <- subset(sc_len, cells = cells_to_keep_len)
 
