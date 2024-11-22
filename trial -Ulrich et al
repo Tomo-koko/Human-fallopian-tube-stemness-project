@@ -1,0 +1,127 @@
+# Library
+library(hdf5r)
+library(Seurat)
+library(cowplot)
+library(reshape2)
+library(RColorBrewer)
+library(gplots)
+library(viridis)
+library(tidyverse)
+library(lme4)
+library(limma)
+library(S4Vectors)
+library(BiocGenerics)
+library(DelayedArray)
+library(DelayedMatrixStats)
+library(SingleCellExperiment)
+library(SummarizedExperiment)
+library(batchelor)
+library(HDF5Array)
+library(terra)
+library(ggrastr)
+library(monocle3)
+library(escape)
+
+# Fix seed and figure font
+set.seed(42)
+theme_set(theme_gray(base_family = "Arial"))
+
+# Load scRNA-seq data by Ulrich et al
+url_ul <- "https://datasets.cellxgene.cziscience.com/116cae82-6420-48a8-af2f-bc9f64545788.rds"
+output_file_ul <- "116cae82-6420-48a8-af2f-bc9f64545788.rds"
+download.file(url_ul, destfile = output_file_ul)
+sc_ul <- readRDS(output_file_ul)
+
+# Extract epithelial cells by the expression of EpCAM (ENSG00000119888) and CDH1 (ENSG00000039068)
+sc_ul@meta.data$cell_type <- NULL
+genes_of_epithelial_cell <- c("ENSG00000119888", "ENSG00000039068") 
+expression_data_ul <- FetchData(sc_ul, vars = genes_of_epithelial_cell, slot = "data")
+plot_epi_ul <- data.frame(
+  Gene1 = expression_data_ul[, "ENSG00000119888"],
+  Gene2 = expression_data_ul[, "ENSG00000039068"]
+)
+epithelial_cells_ul <- sum(plot_epi_ul$Gene1 >= 0.1 & plot_epi_ul$Gene2 >= 0.1)
+ggplot(plot_epi_ul, aes(x = Gene1, y = Gene2)) +
+  geom_point(size = 1, alpha = 0.7) +
+  geom_vline(xintercept = 0.1, linetype = "dashed", color = "red") +  
+  geom_hline(yintercept = 0.1, linetype = "dashed", color = "blue") + 
+  labs(
+    title = "Epithelial characteristics of all cells in the dataset by Ulrich et al",
+    x = "Expression of EpCAM",
+    y = "Expression of CDH1"
+  ) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(hjust = 0.5)
+  ) +
+  annotate(
+    "text", x = max(plot_epi_ul$Gene1), y = max(plot_epi_ul$Gene2), 
+    label = paste("EpCAM/CDH1(+/+) epithelial cells:", epithelial_cells_ul),
+    hjust = 1, vjust = 1, color = "black", size = 5
+  )
+
+  ## Threshold to define epithelial cells: the expression of EpCAM >= 0.1 and CDH >= 0.1
+  data_ul <- sc_ul@assays$RNA@data
+  cells_to_keep_ul <- colnames(data_ul)[
+  data_ul["ENSG00000119888", ] >= 0.1 & data_ul["ENSG00000039068", ] >= 0.1
+　]
+  epi_filter_ul <- subset(sc_ul, cells = cells_to_keep_ul)
+
+# Prepare some objects for monocle3 analysis
+counts_ul <- GetAssayData(epi_filter_ul, assay = "RNA", layer = "counts")
+gene_metadata <- data.frame(gene_short_name = rownames(counts_ul))
+rownames(gene_metadata) <- rownames(counts_ul)
+meta_data_ul <- epi_filter_ul@meta.data
+cds_ul <- new_cell_data_set(
+  counts_ul,
+  cell_metadata = meta_data_ul,
+  gene_metadata = gene_metadata
+)
+
+# monocle3 analysis
+cds_ul <- preprocess_cds(cds_ul, num_dim = 30, method = "PCA")
+cds_ul <- reduce_dimension(cds_ul, preprocess_method = "PCA", reduction_method = "UMAP")
+cds_ul <- cluster_cells(cds_ul, reduction_method = "UMAP")
+cds_ul <- learn_graph(cds_ul, use_partition = FALSE)
+
+# Attach the UMAP result to the Seurat Object
+umap_coords_ul <- reducedDims(cds_ul)$UMAP
+umap_coords_df_ul <- as.data.frame(umap_coords_ul)
+colnames(umap_coords_df_ul) <- c("UMAP_1", "UMAP_2")
+umap_coords_df_ul$cell_id <- rownames(umap_coords_ul)
+umap_coords_df_ul <- umap_coords_df_ul[match(rownames(epi_filter_ul@meta.data), umap_coords_df_ul$cell_id), ]
+epi_filter_ul[["monocle3_UMAP"]] <- CreateDimReducObject(
+  embeddings = as.matrix(umap_coords_df_ul[, c("UMAP_1", "UMAP_2")]),
+  key = "monUMAP_",
+  assay = DefaultAssay(epi_filter_ul)
+)
+
+# Attach the cluster information to the Seurat Object
+monocle_clusters_ul <- clusters(cds_ul)
+monocle_clusters_ul <- monocle_clusters_ul[rownames(epi_filter_ul@meta.data)]
+epi_filter_ul@meta.data$monocle3_clusters <- monocle_clusters_ul
+
+# Plot UMAP
+DimPlot(epi_filter_ul, reduction = "monocle3_UMAP", group.by = "monocle3_clusters", label = TRUE)
+DimPlot(epi_filter_ul, reduction = "monocle3_UMAP", group.by = "donor_id", label = TRUE)
+
+# Run escape to execute single-cell enrichment analysis
+ES.epi_filter_ul <- escape.matrix(epi_filter_ul, 
+                                   method = "ssGSEA",
+                                   gene.sets = genesets, 
+                                   groups = 3000, 
+                                   min.size = 5
+                                   )
+
+epi_filter_ul <- AddMetaData(epi_filter_ul, metadata = ES.epi_filter_ul)
+FeaturePlot(epi_filter_ul, reduction = "monocle3_UMAP", features = colnames(ES.epi_filter_ul), cols = c("green", "red"))
+VlnPlot(epi_filter_ul, group.by = "monocle3_clusters", features = colnames(ES.epi_filter_ul))
+
+# Calculate pseudotime
+cds_ul <- order_cells(cds_ul, reduction_method = "UMAP")  ## define cluster XX as a start point 
+plot_cells(cds_ul,
+           color_cells_by = "pseudotime",
+           label_cell_groups= FALSE,
+           label_leaves= FALSE,
+           label_branch_points= FALSE,
+           graph_label_size= 1.5)
