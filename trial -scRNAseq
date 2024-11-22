@@ -40,7 +40,7 @@ plot_epi_len <- data.frame(
   Gene1 = expression_data_len[, "ENSG00000119888"],
   Gene2 = expression_data_len[, "ENSG00000039068"]
 )
-epithelial_cells_len <- sum(plot_epi_len$Gene1 > 0.1 & plot_epi_len$Gene2 > 0.1)
+epithelial_cells_len <- sum(plot_epi_len$Gene1 >= 0.1 & plot_epi_len$Gene2 >= 0.1)
 ggplot(plot_epi_len, aes(x = Gene1, y = Gene2)) +
   geom_point(size = 1, alpha = 0.7) +
   geom_vline(xintercept = 0.1, linetype = "dashed", color = "red") +  
