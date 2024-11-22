@@ -80,9 +80,9 @@ cds_ul <- new_cell_data_set(
 
 # monocle3 analysis
 cds_ul <- preprocess_cds(cds_ul, num_dim = 30, method = "PCA")
-cds_ul <- align_cds(cds_ul, alignment_group = "donor_id")
-cds_ul <- reduce_dimension(cds_ul, preprocess_method = "PCA", reduction_method = "UMAP")
-cds_ul <- cluster_cells(cds_ul, reduction_method = "UMAP")
+cds_ul <- align_cds(cds_ul, preprocess_method = "PCA", alignment_group = "donor_id")
+cds_ul <- reduce_dimension(cds_ul, preprocess_method = "Aligned", reduction_method = "UMAP")
+cds_ul <- cluster_cells(cds_ul, preprocess_method = "Aligned", reduction_method = "UMAP")
 cds_ul <- learn_graph(cds_ul, use_partition = FALSE)
 
 # Attach the UMAP result to the Seurat Object
@@ -119,7 +119,7 @@ FeaturePlot(epi_filter_ul, reduction = "monocle3_UMAP", features = colnames(ES.e
 VlnPlot(epi_filter_ul, group.by = "monocle3_clusters", features = colnames(ES.epi_filter_ul))
 
 # Calculate pseudotime
-cds_ul <- order_cells(cds_ul, reduction_method = "UMAP")  ## define cluster XX as a start point 
+cds_ul <- order_cells(cds_ul, preprocess_method = "Aligned", reduction_method = "UMAP")  ## define cluster XX as a start point 
 plot_cells(cds_ul,
            color_cells_by = "pseudotime",
            label_cell_groups= FALSE,
