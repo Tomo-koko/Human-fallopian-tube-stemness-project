@@ -69,13 +69,13 @@ ggplot(plot_epi_ul, aes(x = Gene1, y = Gene2)) +
 
 # Prepare some objects for monocle3 analysis
 counts_ul <- GetAssayData(epi_filter_ul, assay = "RNA", layer = "counts")
-gene_metadata <- data.frame(gene_short_name = rownames(counts_ul))
-rownames(gene_metadata) <- rownames(counts_ul)
+gene_metadata_ul <- data.frame(gene_short_name = rownames(counts_ul))
+rownames(gene_metadata_ul) <- rownames(counts_ul)
 meta_data_ul <- epi_filter_ul@meta.data
 cds_ul <- new_cell_data_set(
   counts_ul,
   cell_metadata = meta_data_ul,
-  gene_metadata = gene_metadata
+  gene_metadata = gene_metadata_ul
 )
 
 # monocle3 analysis
