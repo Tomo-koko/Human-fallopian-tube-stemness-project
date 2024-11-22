@@ -80,6 +80,7 @@ cds_ul <- new_cell_data_set(
 
 # monocle3 analysis
 cds_ul <- preprocess_cds(cds_ul, num_dim = 30, method = "PCA")
+cds_ul <- align_cds(cds_ul, alignment_group = "donor_id")
 cds_ul <- reduce_dimension(cds_ul, preprocess_method = "PCA", reduction_method = "UMAP")
 cds_ul <- cluster_cells(cds_ul, reduction_method = "UMAP")
 cds_ul <- learn_graph(cds_ul, use_partition = FALSE)
