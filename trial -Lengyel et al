@@ -78,12 +78,13 @@ cds_len <- new_cell_data_set(
   gene_metadata = gene_metadata_len
 )
 
-# monocle3 analysis
-cds_len <- preprocess_cds(cds_len, num_dim = 30, method = "PCA")
+# monocle3 analysis (remove the batch effect due to donor_id)
+cds_len <- preprocess_cds(cds_len, num_dim = 40, method = "PCA")
 cds_len <- align_cds(cds_len, preprocess_method = "PCA", alignment_group = "donor_id")
 cds_len <- reduce_dimension(cds_len, preprocess_method = "Aligned", reduction_method = "UMAP")
-cds_len <- cluster_cells(cds_len, preprocess_method = "Aligned", reduction_method = "UMAP")
-cds_len <- learn_graph(cds_len, use_partition = FALSE)
+cds_len <- cluster_cells(cds_len, preprocess_method = "Aligned", k = 10, reduction_method = "UMAP")
+cds_len <- learn_graph(cds_len)
+plot_cells(cds_len, color_cells_by = "cluster")
 
 # Attach the UMAP result to the Seurat Object
 umap_coords_len <- reducedDims(cds_len)$UMAP
@@ -108,7 +109,7 @@ DimPlot(epi_filter_len, reduction = "monocle3_UMAP", group.by = "donor_id", labe
 
 # Run escape to execute single-cell enrichment analysis
 ES.epi_filter_len <- escape.matrix(epi_filter_len, 
-                                   method = "ssGSEA",
+                                   method = "AUCell",
                                    gene.sets = genesets, 
                                    groups = 3000, 
                                    min.size = 5
