@@ -79,8 +79,8 @@ cds_len <- new_cell_data_set(
 )
 
 # monocle3 analysis (remove the batch effect due to donor_id)
-cds_len <- preprocess_cds(cds_len, num_dim = 40, method = "PCA")
-cds_len <- align_cds(cds_len, preprocess_method = "PCA", alignment_group = "donor_id")
+cds_len <- preprocess_cds(cds_len, num_dim = 10, method = "PCA")
+cds_len <- align_cds(cds_len, preprocess_method = "PCA", alignment_group = "donor_id", alignment_k = 10)
 cds_len <- reduce_dimension(cds_len, preprocess_method = "Aligned", reduction_method = "UMAP")
 cds_len <- cluster_cells(cds_len, preprocess_method = "Aligned", k = 10, reduction_method = "UMAP")
 cds_len <- learn_graph(cds_len)
@@ -120,7 +120,7 @@ FeaturePlot(epi_filter_len, reduction = "monocle3_UMAP", features = colnames(ES.
 VlnPlot(epi_filter_len, group.by = "monocle3_clusters", features = colnames(ES.epi_filter_len))
 
 # Calculate pseudotime
-cds_len <- order_cells(cds_len, preprocess_method = "Aligned", reduction_method = "UMAP")  ## define cluster XX as a start point 
+cds_len <- order_cells(cds_len, reduction_method = "UMAP")  ## define cluster XX as a start point 
 plot_cells(cds_len,
            color_cells_by = "pseudotime",
            label_cell_groups= FALSE,
