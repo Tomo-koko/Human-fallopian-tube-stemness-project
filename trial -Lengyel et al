@@ -89,8 +89,8 @@ cds_len <- new_cell_data_set(
 )
 
 # monocle3 analysis
-cds_len <- preprocess_cds(cds_len, num_dim = 5, method = "PCA")
-cds_len <- align_cds(cds_len, preprocess_method = "PCA", alignment_group = "donor_id", alignment_k = 500)
+cds_len <- preprocess_cds(cds_len, num_dim = 7, method = "PCA")
+cds_len <- align_cds(cds_len, preprocess_method = "PCA", alignment_group = "donor_id", alignment_k = 200)
 cds_len <- reduce_dimension(cds_len, preprocess_method = "Aligned", reduction_method = "UMAP")
 cds_len <- cluster_cells(cds_len, preprocess_method = "Aligned", k = 20, reduction_method = "UMAP")
 cds_len <- learn_graph(cds_len, use_partition = FALSE)
