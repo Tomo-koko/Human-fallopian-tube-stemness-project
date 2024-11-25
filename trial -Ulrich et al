@@ -285,3 +285,4 @@ plot_cells(cds_ul,
 # Explore the marker genes of the dormant cells
 pseudo_results_ul <- graph_test(cds_ul, neighbor_graph="principal_graph", cores=128)
 q_val_0_list_ul <- pseudo_results_ul[pseudo_results_ul$q_value == 0, ]
+important_gene_ids_ul <- row.names(q_val_0_list_ul)
