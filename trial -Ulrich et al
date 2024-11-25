@@ -119,8 +119,31 @@ epi_filter_ul <- AddMetaData(epi_filter_ul, metadata = ES.epi_filter_ul)
 FeaturePlot(epi_filter_ul, reduction = "monocle3_UMAP", features = colnames(ES.epi_filter_ul), cols = c("green", "red"))
 VlnPlot(epi_filter_ul, group.by = "monocle3_clusters", features = colnames(ES.epi_filter_ul))
 
-# Calculate pseudotime
-cds_ul <- order_cells(cds_ul, reduction_method = "UMAP")  ## define cluster XX as a start point 
+# Add the enrichment score of the dormancy gene set to the cds object
+seurat_meta_ul <- epi_filter_ul@meta.data
+common_cells_ul <- intersect(rownames(seurat_meta_ul), colnames(cds_ul))
+seurat_meta_ul_filtered <- seurat_meta_ul[common_cells_ul, ]
+seurat_meta_ul_filtered <- as(seurat_meta_ul_filtered, "DataFrame")
+colData(cds_ul) <- seurat_meta_ul_filtered
+
+# Fix a root node programatically by the enrichment score of the dormancy gene set and calculate the pseudotime
+get_meta_based_principal_node <- function(cds, meta_column) {
+  # Gain the meta data
+  meta_values <- colData(cds)[[meta_column]]
+  # Gain the cell ids of "Dormant cells"
+  cell_ids <- which(meta_values == max(meta_values, na.rm = TRUE))
+  # Gain the nearest node of the cells
+  closest_vertex <- cds@principal_graph_aux[["UMAP"]]$pr_graph_cell_proj_closest_vertex
+  closest_vertex <- as.matrix(closest_vertex[colnames(cds), ])
+  # Identify the root node which the dormancy cells belong to
+  root_pr_nodes <-
+    igraph::V(principal_graph(cds)[["UMAP"]])$name[as.numeric(names(
+      which.max(table(closest_vertex[cell_ids, ]))
+    ))]
+  root_pr_nodes
+}
+root_pr_nodes <- get_meta_based_principal_node(cds_ul, "Dormancy_gene_set")
+cds_ul <- order_cells(cds_ul, root_pr_nodes = root_pr_nodes)
 plot_cells(cds_ul,
            color_cells_by = "pseudotime",
            label_cell_groups= FALSE,
@@ -128,3 +151,4 @@ plot_cells(cds_ul,
            label_branch_points= FALSE,
            graph_label_size= 1.5)
 
+# Explore the marker genes of the dormant cells
