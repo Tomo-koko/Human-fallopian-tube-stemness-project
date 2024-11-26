@@ -7,13 +7,6 @@
 ## Appendix (for SHIROKANE users)
 ## 0. Install packages
 ## 1. Load scRNA-seq data from Cellxgene
-## 2-1. Basic analysis of scRNA-seq data by Lengyel et al
-## 2-2. Trajectory analysis of scRNS-seq data by Lengyel et al
-## 3-1. Basic analysis of scRNA-seq data by Ulrich et al
-## 3-2. Trajectory analysis of scRNS-seq data by Ulrich et al
-## 4. Define fallopian tube stemness signature
-## 5. Analyze the activation of the stemness signature
-## 6. Explore key genes in the stemness
 
 # Important references (scRNA-seq data we used and reanalyzed in the paper)
 ## Lengyel E, Li Y, Weigert M, et al. A molecular atlas of the human postmenopausal fallopian tube and ovary from single-cell RNA and ATAC sequencing. Cell Rep. 2022;41(12):111838. doi:10.1016/j.celrep.2022.111838
