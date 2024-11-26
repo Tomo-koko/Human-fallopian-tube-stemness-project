@@ -121,7 +121,7 @@ plot_cells(cds_ul,
            label_branch_points= FALSE,
            graph_label_size= 1.5)
 
-# Explore the marker genes of the dormant cells
+# Explore the important genes changing their expression along pseudotime
 pseudo_results_ul <- graph_test(cds_ul, neighbor_graph="principal_graph", cores=128)
 q_val_0_list_ul <- pseudo_results_ul[pseudo_results_ul$q_value == 0, ]
 important_gene_ids_ul <- row.names(q_val_0_list_ul)
