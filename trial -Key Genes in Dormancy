@@ -28,3 +28,38 @@ Key_Genes <- intersect(important_gene_ids_len, important_gene_ids_ul)
 # Create the subset of the scRNA-seq datasets
 cds_key_len <- cds_len[rowData(cds_len)$gene_short_name %in% Key_Genes]
 cds_key_ul <- cds_ul[rowData(cds_ul)$gene_short_name %in% Key_Genes]
+
+# !!Atention!! Execute the prediction in the almost same way as the monocle3 plot_genes_in_pseudotime source code
+# Please refer to the link below
+# https://github.com/cole-trapnell-lab/monocle3/blob/v1.3.1/R/plotting.R
+
+cds_exprs_len <- SingleCellExperiment::counts(cds_key_len)
+cds_exprs_len <- Matrix::t(Matrix::t(cds_exprs_len)/size_factors(cds_key_len))
+cds_exprs_len <- reshape2::melt(round(as.matrix(cds_exprs_len)))
+
+colnames(cds_exprs_len) <- c("f_id", "Cell", "expression")
+cds_colData_len <- colData(cds_key_len)
+cds_rowData_len <- rowData(cds_key_len)
+cds_exprs_len <- merge(cds_exprs_len, cds_rowData_len, by.x = "f_id", by.y = "row.names")
+cds_exprs_len <- merge(cds_exprs_len@listData, cds_colData_len, by.x = "Cell", by.y = "row.names")
+cds_exprs_len$feature_label <- cds_exprs_len$f_id
+cds_exprs_len$f_id <- as.character(cds_exprs_len$f_id)
+cds_exprs_len$feature_label <- factor(cds_exprs_len$feature_label)
+
+colData(cds_key_len)$pseudotime <- pseudotime(cds_key_len)
+cds_key_len <- cds_key_len[,is.finite(colData(cds_key_len)$pseudotime)]
+model_len <- fit_models(cds_key_len, model_formula_str = "~ splines::ns(pseudotime, df=3)")
+new_data_len <- as.data.frame(colData(cds_key_len))
+new_data_len$Size_Factor = 1
+model_expectation_len <- model_predictions(model_len, new_data = new_data_len)
+colnames(model_expectation_len) <- colnames(cds_key_len)
+
+expectation_len <- plyr::ddply(cds_exprs_len, plyr::.(f_id, Cell),
+                           function(x) {
+                             data.frame(
+                               "expectation"=model_expectation_len[x$f_id,
+                                                                   x$Cell])
+                           })
+cds_exprs_len <- merge(cds_exprs_len, expectation_len)
+ggplot(aes(pseudotime, expression), data = cds_exprs_len) +
+geom_line(aes(x = pseudotime, y = expectation), data = cds_exprs_len)
