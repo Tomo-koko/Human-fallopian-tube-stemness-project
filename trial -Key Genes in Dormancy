@@ -20,6 +20,11 @@ library(HDF5Array)
 library(terra)
 library(ggrastr)
 library(monocle3)
+library(splines2)
 
 # Define key genes in both scRNA-seq data
 Key_Genes <- intersect(important_gene_ids_len, important_gene_ids_ul)
+
+# Create the subset of the scRNA-seq datasets
+cds_key_len <- cds_len[rowData(cds_len)$gene_short_name %in% Key_Genes]
+cds_key_ul <- cds_ul[rowData(cds_ul)$gene_short_name %in% Key_Genes]
