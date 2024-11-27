@@ -20,6 +20,7 @@ library(HDF5Array)
 library(terra)
 library(ggrastr)
 library(monocle3)
+library(biomaRt)
 library(splines2)
 
 # Fix seed and figure font
@@ -48,8 +49,8 @@ dense_matrix_len <- as.matrix(cds_exprs_len)
 df_len <- as.data.frame(dense_matrix_len)
 rownames(df_len) <- rownames(cds_exprs_len)
 colnames(df_len) <- colnames(cds_exprs_len)
-  ## Add a very small number (0.00000001) to normalized expression values and change the values into log-scale
-  df_len_log <- log10(df_len + 0.00000001) 
+  ## Add a very small number (0.1) to normalized expression values and change the values into log-scale
+  df_len_log <- log2(df_len + 1) 
 pseudotime_len <- pseudotime(cds_key_len)
 genes_len <- rownames(df_len_log)
 
@@ -57,8 +58,8 @@ dense_matrix_ul <- as.matrix(cds_exprs_ul)
 df_ul <- as.data.frame(dense_matrix_ul)
 rownames(df_ul) <- rownames(cds_exprs_ul)
 colnames(df_ul) <- colnames(cds_exprs_ul)
-  ## Add a very small number (0.00000001) to normalized expression values and change the values into log-scale
-  df_ul_log <- log10(df_ul + 0.00000001) 
+  ## Add a very small number (0.1) to normalized expression values and change the values into log-scale
+  df_ul_log <- log2(df_ul + 1) 
 pseudotime_ul <- pseudotime(cds_key_ul)
 genes_ul <- rownames(df_ul_log)
 
@@ -66,10 +67,11 @@ genes_ul <- rownames(df_ul_log)
 derivative_results_len <- list()
 for (gene in genes_len) {
   expr <- as.numeric(df_len_log[gene, ])  
-  ns_basis <- naturalSpline(pseudotime_len, df = 3) 
-  model <- glm(expr ~ ns_basis - 1)  
-  ns_basis_deriv <- deriv(ns_basis)  
-  deriv_values <- as.vector(ns_basis_deriv %*% coef(model))  
+  ns_basis <- naturalSpline(pseudotime_len, df = 3, intercept = TRUE) 
+  model <- glm(expr ~ ns_basis)  
+  coef <- c(model$coefficients["ns_basis1"], model$coefficients["ns_basis2"], model$coefficients["ns_basis3"])
+  ns_basis_deriv <- deriv(ns_basis, intercept = TRUE) 
+  deriv_values <- as.vector(ns_basis_deriv %*% coef)  
   derivative_results_len[[gene]] <- deriv_values  
 }
 derivative_df_len <- do.call(cbind, derivative_results_len)
@@ -80,15 +82,63 @@ str(derivative_df_len)
 derivative_results_ul <- list()
 for (gene in genes_ul) {
   expr <- as.numeric(df_ul_log[gene, ])  
-  ns_basis <- naturalSpline(pseudotime_ul, df = 3)  
-  model <- glm(expr ~ ns_basis - 1)  
-  ns_basis_deriv <- deriv(ns_basis)  
-  deriv_values <- as.vector(ns_basis_deriv %*% coef(model))  
-  derivative_results_ul[[gene]] <- deriv_values  
+  ns_basis <- naturalSpline(pseudotime_ul, df = 3, intercept = TRUE) 
+  model <- glm(expr ~ ns_basis)  
+  coef <- c(model$coefficients["ns_basis1"], model$coefficients["ns_basis2"], model$coefficients["ns_basis3"])
+  predict_deriv_value <- predict(ns_basis, newx = pseudotime_ul, coef = coef, derivs = 1)
+  derivative_results_ul[[gene]] <- predict_deriv_value 
 }
 derivative_df_ul <- do.call(cbind, derivative_results_ul)
-colnames(derivative_df_ul) <- genes_ul  
-derivative_df_ul <- data.frame(pseudotime = pseudotime_ul, derivative_df_ul)  
+colnames(derivative_df_ul) <- genes_ul
+derivative_df_ul <- data.frame(pseudotime = pseudotime_ul, derivative_df_ul)
 str(derivative_df_ul) 
 
-# 
+# Extract key genes in "stemness" with monotonically decreasing graphs (all derivatives on observed pseudotime < 0)
+derivative_matrix_len <- derivative_df_len[, -1]
+dormancy_genes_len <- colnames(derivative_matrix_len)[apply(derivative_matrix_len, 2, function(x) all(x < 0))]
+print(dormancy_genes_len)
+
+derivative_matrix_ul <- derivative_df_ul[, -1]
+dormancy_genes_ul <- colnames(derivative_matrix_ul)[apply(derivative_matrix_ul, 2, function(x) all(x < 0))]
+print(dormancy_genes_ul)
+
+Candidates_for_Key_Genes_in_Dormancy <- intersect(dormancy_genes_len, dormancy_genes_ul)
+
+# Calculate the intersects of the candidate genes in glm
+intersects_len <- list()
+for (gene in Candidates_for_Key_Genes_in_Dormancy) {
+  expr <- as.numeric(df_len_log[gene, ])  
+  ns_basis <- naturalSpline(pseudotime_len, df = 3, intercept = TRUE)
+  model <- glm(expr ~ ns_basis)  
+  coef <- c(model$coefficients["ns_basis1"], model$coefficients["ns_basis2"], model$coefficients["ns_basis3"])
+  ns_basis_at_zero <- as.vector(predict(ns_basis, newx = 0))
+  intersect_value <- sum(intercept, ns_basis_at_zero %*% coef(model))
+  intersects_len[[gene]] <- intersect_value
+}
+intersects_df_len <- data.frame(
+  Gene = names(intersects_len),
+  Intersect = unlist(intersects_len)
+)
+
+intersects_ul <- list()
+for (gene in Candidates_for_Key_Genes_in_Dormancy) {
+  expr <- as.numeric(df_ul_log[gene, ])  
+  ns_basis <- naturalSpline(pseudotime_ul, df = 3)
+  model <- glm(expr ~ ns_basis - 1)  
+  ns_basis_at_zero <- as.vector(predict(ns_basis, newx = 0))
+  intersect_value <- sum(ns_basis_at_zero * coef(model))
+  intersects_ul[[gene]] <- intersect_value
+}
+intersects_df_ul <- data.frame(
+  Gene = names(intersects_ul),
+  Intersect = unlist(intersects_ul)
+)
+
+
+Key_Genes_in_Dormancy_List <- getBM(
+  attributes = c("ensembl_gene_id", "hgnc_symbol"),  
+  filters = "ensembl_gene_id",                       
+  values = Key_Genes_in_Dormancy,                    
+  mart = ensembl                                     
+)
+
