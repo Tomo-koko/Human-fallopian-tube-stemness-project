@@ -22,6 +22,10 @@ library(ggrastr)
 library(monocle3)
 library(splines2)
 
+# Fix seed and figure font
+set.seed(42)
+theme_set(theme_gray(base_family = "Arial"))
+
 # Define key genes in both scRNA-seq data
 Key_Genes <- intersect(important_gene_ids_len, important_gene_ids_ul)
 
@@ -29,37 +33,62 @@ Key_Genes <- intersect(important_gene_ids_len, important_gene_ids_ul)
 cds_key_len <- cds_len[rowData(cds_len)$gene_short_name %in% Key_Genes]
 cds_key_ul <- cds_ul[rowData(cds_ul)$gene_short_name %in% Key_Genes]
 
-# !!Atention!! Execute the prediction in the almost same way as the monocle3 plot_genes_in_pseudotime source code
+# !!Atention!! Normalize the gene expression from count data in the same way as the monocle3 plot_genes_in_pseudotime source code
 # Please refer to the link below
 # https://github.com/cole-trapnell-lab/monocle3/blob/v1.3.1/R/plotting.R
 
 cds_exprs_len <- SingleCellExperiment::counts(cds_key_len)
 cds_exprs_len <- Matrix::t(Matrix::t(cds_exprs_len)/size_factors(cds_key_len))
-cds_exprs_len <- reshape2::melt(round(as.matrix(cds_exprs_len)))
 
-colnames(cds_exprs_len) <- c("f_id", "Cell", "expression")
-cds_colData_len <- colData(cds_key_len)
-cds_rowData_len <- rowData(cds_key_len)
-cds_exprs_len <- merge(cds_exprs_len, cds_rowData_len, by.x = "f_id", by.y = "row.names")
-cds_exprs_len <- merge(cds_exprs_len@listData, cds_colData_len, by.x = "Cell", by.y = "row.names")
-cds_exprs_len$feature_label <- cds_exprs_len$f_id
-cds_exprs_len$f_id <- as.character(cds_exprs_len$f_id)
-cds_exprs_len$feature_label <- factor(cds_exprs_len$feature_label)
+cds_exprs_ul <- SingleCellExperiment::counts(cds_key_ul)
+cds_exprs_ul <- Matrix::t(Matrix::t(cds_exprs_ul)/size_factors(cds_key_ul))
 
-colData(cds_key_len)$pseudotime <- pseudotime(cds_key_len)
-cds_key_len <- cds_key_len[,is.finite(colData(cds_key_len)$pseudotime)]
-model_len <- fit_models(cds_key_len, model_formula_str = "~ splines::ns(pseudotime, df=3)")
-new_data_len <- as.data.frame(colData(cds_key_len))
-new_data_len$Size_Factor = 1
-model_expectation_len <- model_predictions(model_len, new_data = new_data_len)
-colnames(model_expectation_len) <- colnames(cds_key_len)
+# Create data frames for an analysis using splines2
+dense_matrix_len <- as.matrix(cds_exprs_len)
+df_len <- as.data.frame(dense_matrix_len)
+rownames(df_len) <- rownames(cds_exprs_len)
+colnames(df_len) <- colnames(cds_exprs_len)
+  ## Add a very small number (0.0001) to normalized expression values and change the values into log-scale
+  df_len_log <- log10(df_len + 0.0001) 
+pseudotime_len <- pseudotime(cds_key_len)
+genes_len <- rownames(df_len_log)
 
-expectation_len <- plyr::ddply(cds_exprs_len, plyr::.(f_id, Cell),
-                           function(x) {
-                             data.frame(
-                               "expectation"=model_expectation_len[x$f_id,
-                                                                   x$Cell])
-                           })
-cds_exprs_len <- merge(cds_exprs_len, expectation_len)
-ggplot(aes(pseudotime, expression), data = cds_exprs_len) +
-geom_line(aes(x = pseudotime, y = expectation), data = cds_exprs_len)
+dense_matrix_ul <- as.matrix(cds_exprs_ul)
+df_ul <- as.data.frame(dense_matrix_ul)
+rownames(df_ul) <- rownames(cds_exprs_ul)
+colnames(df_ul) <- colnames(cds_exprs_ul)
+  ## Add a very small number (0.0001) to normalized expression values and change the values into log-scale
+  df_ul_log <- log10(df_ul + 0.0001) 
+pseudotime_ul <- pseudotime(cds_key_ul)
+genes_ul <- rownames(df_ul_log)
+
+# 
+# Calculate the derivatives of natural spline curves of all genes
+derivative_results_len <- list()
+for (gene in genes_len) {
+  expr <- as.numeric(df_len_log[gene, ])  
+  ns_basis <- naturalSpline(pseudotime_len, df = 3) 
+  model <- glm(expr ~ ns_basis - 1)  
+  ns_basis_deriv <- deriv(ns_basis)  
+  deriv_values <- as.vector(ns_basis_deriv %*% coef(model))  
+  derivative_results_len[[gene]] <- deriv_values  
+}
+derivative_df_len <- do.call(cbind, derivative_results_len)
+colnames(derivative_df_len) <- genes_len
+derivative_df_len <- data.frame(pseudotime = pseudotime_len, derivative_df_len)
+str(derivative_df_len)
+
+derivative_results_ul <- list()
+for (gene in genes_ul) {
+  expr <- as.numeric(df_ul_log[gene, ])  
+  ns_basis <- naturalSpline(pseudotime_ul, df = 3)  
+  model <- glm(expr ~ ns_basis - 1)  
+  ns_basis_deriv <- deriv(ns_basis)  
+  deriv_values <- as.vector(ns_basis_deriv %*% coef(model))  
+  derivative_results_ul[[gene]] <- deriv_values  
+}
+derivative_df_ul <- do.call(cbind, derivative_results_ul)
+colnames(derivative_df_ul) <- genes_ul  
+derivative_df_ul <- data.frame(pseudotime = pseudotime_ul, derivative_df_ul)  
+str(derivative_df_ul) 
+
