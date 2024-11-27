@@ -48,8 +48,8 @@ dense_matrix_len <- as.matrix(cds_exprs_len)
 df_len <- as.data.frame(dense_matrix_len)
 rownames(df_len) <- rownames(cds_exprs_len)
 colnames(df_len) <- colnames(cds_exprs_len)
-  ## Add a very small number (0.0001) to normalized expression values and change the values into log-scale
-  df_len_log <- log10(df_len + 0.0001) 
+  ## Add a very small number (0.00000001) to normalized expression values and change the values into log-scale
+  df_len_log <- log10(df_len + 0.00000001) 
 pseudotime_len <- pseudotime(cds_key_len)
 genes_len <- rownames(df_len_log)
 
@@ -57,8 +57,8 @@ dense_matrix_ul <- as.matrix(cds_exprs_ul)
 df_ul <- as.data.frame(dense_matrix_ul)
 rownames(df_ul) <- rownames(cds_exprs_ul)
 colnames(df_ul) <- colnames(cds_exprs_ul)
-  ## Add a very small number (0.0001) to normalized expression values and change the values into log-scale
-  df_ul_log <- log10(df_ul + 0.0001) 
+  ## Add a very small number (0.00000001) to normalized expression values and change the values into log-scale
+  df_ul_log <- log10(df_ul + 0.00000001) 
 pseudotime_ul <- pseudotime(cds_key_ul)
 genes_ul <- rownames(df_ul_log)
 
