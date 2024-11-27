@@ -62,7 +62,6 @@ colnames(df_ul) <- colnames(cds_exprs_ul)
 pseudotime_ul <- pseudotime(cds_key_ul)
 genes_ul <- rownames(df_ul_log)
 
-# 
 # Calculate the derivatives of natural spline curves of all genes
 derivative_results_len <- list()
 for (gene in genes_len) {
@@ -92,3 +91,4 @@ colnames(derivative_df_ul) <- genes_ul
 derivative_df_ul <- data.frame(pseudotime = pseudotime_ul, derivative_df_ul)  
 str(derivative_df_ul) 
 
+# 
