@@ -1,4 +1,4 @@
-# The code files were done under SHIROKANE7
+# The code files were done under SHIROKANE OS8
 qlogin -l s_vmem=128G
 module use /usr/local/package/modulefiles
 module load rstudio
