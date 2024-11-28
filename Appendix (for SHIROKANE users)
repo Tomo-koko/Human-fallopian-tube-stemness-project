@@ -1,5 +1,5 @@
-# The code files were done under SHIROKANE7 OS8
-qlogin -l s_vmem=128G
+# The code files were done under SHIROKANE OS8
+qlogin -l os8 -l s_vmem=128G
 module use /usr/local/package/modulefiles
 module load rstudio
 export LD_LIBRARY_PATH=/rshare1/home/<username>/udunits/lib/:${LD_LIBRARY_PATH}
