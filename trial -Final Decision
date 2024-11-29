@@ -1,0 +1,52 @@
+# Library
+library(hdf5r)
+library(Seurat)
+library(cowplot)
+library(reshape2)
+library(RColorBrewer)
+library(gplots)
+library(viridis)
+library(tidyverse)
+library(lme4)
+library(limma)
+library(S4Vectors)
+library(BiocGenerics)
+library(DelayedArray)
+library(DelayedMatrixStats)
+library(SingleCellExperiment)
+library(SummarizedExperiment)
+library(batchelor)
+library(HDF5Array)
+library(terra)
+library(ggrastr)
+library(monocle3)
+library(biomaRt)
+library(splines2)
+
+# Fix seed and figure font
+set.seed(42)
+theme_set(theme_gray(base_family = "Arial"))
+
+# Extract the expression of the key genes in dormancy in our bulk RNA-seq result
+bulk_key_genes <- bulk_pkh %>%
+  filter(Gene_Symbol %in% Key_Genes_in_Dormancy_List$hgnc_symbol)
+bulk_key_genes <- bulk_key_genes %>%
+  arrange(desc(`PKH-R3(retained)_TPM`))
+bulk_key_genes
+# A tibble: 14 × 4
+##    Gene_Symbol `PKH-R3(retained)_TPM` `PKH-R6(reduced)_TPM` `Normalized Ret/Red`
+##    <chr>                        <dbl>                 <dbl>                <dbl>
+##  1 LCN2                        3451.               1104.                   3.13 
+##  2 CXCL2                        956.                327.                   2.92 
+##  3 C3                           679.                212.                   3.20 
+##  4 VCL                          179.                149.                   1.21 
+##  5 NCOA7                        169.                 59.0                  2.87 
+##  6 IL4I1                        153.                 12.5                 12.3  
+##  7 MYO1C                        144.                109.                   1.32 
+##  8 TNFRSF10B                    137.                 96.0                  1.43 
+##  9 IFI16                         84.7                61.9                  1.37 
+## 10 ARPC5                         75.1                69.0                  1.09 
+## 11 BCL3                          30.2                32.2                  0.937
+## 12 NFKBID                        23.9                12.6                  1.89 
+## 13 KCNK15                        19.7                 0.918               21.3  
+## 14 FAM107A                       18.4                14.4                  1.28 
