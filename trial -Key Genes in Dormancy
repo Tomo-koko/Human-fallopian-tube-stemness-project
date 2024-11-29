@@ -161,6 +161,3 @@ Key_Genes_in_Dormancy_List <- getBM(
   values = Key_Genes_in_Dormancy,                    
   mart = ensembl                                     
 )
-
-Key_Genes_in_Dormancy_List
-
