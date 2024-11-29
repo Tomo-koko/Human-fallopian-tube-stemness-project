@@ -49,25 +49,21 @@ dense_matrix_len <- as.matrix(cds_exprs_len)
 df_len <- as.data.frame(dense_matrix_len)
 rownames(df_len) <- rownames(cds_exprs_len)
 colnames(df_len) <- colnames(cds_exprs_len)
-  ## Add a very small number (0.1) to normalized expression values and change the values into log-scale
-  df_len_log <- log10(df_len + 0.1) 
 pseudotime_len <- pseudotime(cds_key_len)
-genes_len <- rownames(df_len_log)
+genes_len <- rownames(df_len)
 
 dense_matrix_ul <- as.matrix(cds_exprs_ul)
 df_ul <- as.data.frame(dense_matrix_ul)
 rownames(df_ul) <- rownames(cds_exprs_ul)
 colnames(df_ul) <- colnames(cds_exprs_ul)
-  ## Add a very small number (0.1) to normalized expression values and change the values into log-scale
-  df_ul_log <- log10(df_ul + 0.1) 
 pseudotime_ul <- pseudotime(cds_key_ul)
-genes_ul <- rownames(df_ul_log)
+genes_ul <- rownames(df_ul)
 
 # Calculate the derivatives of natural spline curves of all genes
 derivative_results_len <- list()
 for (gene in genes_len) {
-  expr <- as.numeric(df_len_log[gene, ])  
-  ns_basis <- naturalSpline(pseudotime_len, df = 3, intercept = TRUE) 
+  expr <- as.numeric(df_len[gene, ])  
+  ns_basis <- naturalSpline(pseudotime_len, df = 3) 
   model <- glm(expr ~ ns_basis)  
   coef <- c(model$coefficients["ns_basis1"], model$coefficients["ns_basis2"], model$coefficients["ns_basis3"])
   ns_basis_deriv <- deriv(ns_basis) 
@@ -81,8 +77,8 @@ str(derivative_df_len)
 
 derivative_results_ul <- list()
 for (gene in genes_ul) {
-  expr <- as.numeric(df_ul_log[gene, ])  
-  ns_basis <- naturalSpline(pseudotime_ul, df = 3, intercept = TRUE) 
+  expr <- as.numeric(df_ul[gene, ])  
+  ns_basis <- naturalSpline(pseudotime_ul, df = 3) 
   model <- glm(expr ~ ns_basis)  
   coef <- c(model$coefficients["ns_basis1"], model$coefficients["ns_basis2"], model$coefficients["ns_basis3"])
   ns_basis_deriv <- deriv(ns_basis) 
@@ -104,7 +100,7 @@ markers <- c("ENSG00000085465", "ENSG00000129654", "ENSG00000105519", "ENSG00000
 marker_result_len <- list()
 marker_result_ul <- list()
 for (gene in markers) {
-  expr_len <- as.numeric(df_len_log[gene, ])  
+  expr_len <- as.numeric(df_len[gene, ])  
   ns_basis_len <- naturalSpline(pseudotime_len, df = 3, intercept = TRUE) 
   model_len <- glm(expr_len ~ ns_basis_len)  
   coef <- c(model_len$coefficients["ns_basis_len1"], model_len$coefficients["ns_basis_len2"], model_len$coefficients["ns_basis_len3"])
@@ -112,7 +108,7 @@ for (gene in markers) {
   deriv_values_len <- as.vector(ns_basis_deriv_len %*% coef)  
   marker_result_len[[gene]] <- deriv_values_len
   
-  expr_ul <- as.numeric(df_ul_log[gene, ])  
+  expr_ul <- as.numeric(df_ul[gene, ])  
   ns_basis_ul <- naturalSpline(pseudotime_ul, df = 3, intercept = TRUE) 
   model_ul <- glm(expr_ul ~ ns_basis_ul)  
   coef <- c(model_ul$coefficients["ns_basis_ul1"], model_ul$coefficients["ns_basis_ul2"], model_ul$coefficients["ns_basis_ul3"])
@@ -147,28 +143,17 @@ ggplot(marker_deriv_ul, aes(x = pseudotime)) +
        y = "Derivative") +
   theme_minimal()
 
-# Extract key genes with monotonically decreasing graphs in the 5% -> 85% pseudotime (to avoid any edge effect, especially at the late stage of differentiation)
-get_middle <- function(pseudotime) {
-  lower_bound <- quantile(pseudotime, 0.05)
-  upper_bound <- quantile(pseudotime, 0.85)
-  pseudotime[pseudotime >= lower_bound & pseudotime <= upper_bound]
-}
-pseudotime_len_mid <- get_middle(pseudotime_len)
-pseudotime_ul_mid <- get_middle(pseudotime_ul)
-
-derivative_matrix_len <- derivative_df_len[, -1]
-derivative_matrix_ul <- derivative_df_ul[, -1]
-
-derivative_matrix_len_mid <- derivative_matrix_len[names(pseudotime_len_mid), ]
-derivative_matrix_ul_mid <- derivative_matrix_ul[names(pseudotime_ul_mid), ]
+# Extract key genes with monotonically decreasing graphs
+derivative_matrix_len <- derivative_df_len[, -1] ## remove the col of pseudotime
+derivative_matrix_ul <- derivative_df_ul[, -1] ## remove the col of pseudotime
 
 get_negative_derivative_genes <- function(derivative_matrix) {
   colnames(derivative_matrix)[apply(derivative_matrix, 2, function(x) all(x < 0))]
 }
-dormancy_genes_len_mid <- get_negative_derivative_genes(derivative_matrix_len_mid)
-dormancy_genes_ul_mid <- get_negative_derivative_genes(derivative_matrix_ul_mid)
+dormancy_genes_len <- get_negative_derivative_genes(derivative_matrix_len)
+dormancy_genes_ul <- get_negative_derivative_genes(derivative_matrix_ul)
 
-Key_Genes_in_Dormancy <- intersect(dormancy_genes_len_mid, dormancy_genes_ul_mid)
+Key_Genes_in_Dormancy <- intersect(dormancy_genes_len, dormancy_genes_ul)
 
 Key_Genes_in_Dormancy_List <- getBM(
   attributes = c("ensembl_gene_id", "hgnc_symbol"),  
@@ -178,11 +163,4 @@ Key_Genes_in_Dormancy_List <- getBM(
 )
 
 Key_Genes_in_Dormancy_List
-##   ensembl_gene_id hgnc_symbol
-## 1 ENSG00000134258       VTCN1
-## 2 ENSG00000148346        LCN2
-## 3 ENSG00000162366    PDZK1IP1
-## 4 ENSG00000173267        SNCG
-## 5 ENSG00000188643     S100A16
-## 6 ENSG00000189377      CXCL17
-## 7 ENSG00000223865    HLA-DPB1
+
