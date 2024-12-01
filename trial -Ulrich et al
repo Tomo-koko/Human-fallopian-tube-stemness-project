@@ -1,26 +1,3 @@
-# Library
-library(hdf5r)
-library(Seurat)
-library(cowplot)
-library(reshape2)
-library(RColorBrewer)
-library(gplots)
-library(viridis)
-library(tidyverse)
-library(lme4)
-library(limma)
-library(S4Vectors)
-library(BiocGenerics)
-library(DelayedArray)
-library(DelayedMatrixStats)
-library(SingleCellExperiment)
-library(SummarizedExperiment)
-library(batchelor)
-library(HDF5Array)
-library(terra)
-library(ggrastr)
-library(monocle3)
-library(escape)
 
 # Fix seed and figure font
 set.seed(42)
@@ -107,7 +84,7 @@ get_meta_based_principal_node <- function(cds, meta_column) {
   closest_vertex <- as.matrix(closest_vertex[colnames(cds), ])
   # Identify the root node which the dormancy cells belong to
   root_pr_nodes <-
-    igraph::V(principal_graph(cds)[["UMAP"]])$name[as.numeric(names(
+    V(principal_graph(cds)[["UMAP"]])$name[as.numeric(names(
       which.max(table(closest_vertex[cell_ids, ]))
     ))]
   root_pr_nodes
