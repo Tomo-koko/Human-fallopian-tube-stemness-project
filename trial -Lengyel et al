@@ -11,7 +11,7 @@ sc_len <- readRDS(output_file_len)
 
 # Extract epithelial cells by the expression of EpCAM (ENSG00000119888) and CDH1 (ENSG00000039068)
 sc_len@meta.data$cell_type <- NULL
-genes_of_epithelial_cell <- c("ENSG00000119888", "ENSG00000039068")  ## using the same geneset to sc_ul in the page 3.1
+genes_of_epithelial_cell <- c("ENSG00000119888", "ENSG00000039068")  
 expression_data_len <- FetchData(sc_len, vars = genes_of_epithelial_cell, slot = "data")
 plot_epi_len <- data.frame(
   Gene1 = expression_data_len[, "ENSG00000119888"],
