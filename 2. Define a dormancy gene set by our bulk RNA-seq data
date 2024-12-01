@@ -1,6 +1,3 @@
-# Library
-library(tidyverse)
-library(biomaRt)
 
 # Fix seed and figure font
 set.seed(42)
