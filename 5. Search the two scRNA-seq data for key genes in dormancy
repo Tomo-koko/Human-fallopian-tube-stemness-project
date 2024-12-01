@@ -66,59 +66,6 @@ colnames(derivative_df_ul) <- genes_ul
 derivative_df_ul <- data.frame(pseudotime = pseudotime_ul, derivative_df_ul)
 str(derivative_df_ul) 
 
-# Chase the process of differentiation and proliferation by well-known marker genes
-## OVGP1: ENSG00000085465
-## FOXJ1: ENSG00000129654
-## CAPS: ENSG00000105519
-## RSPH1: ENSG00000160188
-markers <- c("ENSG00000085465", "ENSG00000129654", "ENSG00000105519", "ENSG00000160188")
-
-marker_result_len <- list()
-marker_result_ul <- list()
-for (gene in markers) {
-  expr_len <- as.numeric(df_len[gene, ])  
-  ns_basis_len <- naturalSpline(pseudotime_len, df = 3, intercept = TRUE) 
-  model_len <- glm(expr_len ~ ns_basis_len)  
-  coef <- c(model_len$coefficients["ns_basis_len1"], model_len$coefficients["ns_basis_len2"], model_len$coefficients["ns_basis_len3"])
-  ns_basis_deriv_len <- deriv(ns_basis_len)  
-  deriv_values_len <- as.vector(ns_basis_deriv_len %*% coef)  
-  marker_result_len[[gene]] <- deriv_values_len
-  
-  expr_ul <- as.numeric(df_ul[gene, ])  
-  ns_basis_ul <- naturalSpline(pseudotime_ul, df = 3, intercept = TRUE) 
-  model_ul <- glm(expr_ul ~ ns_basis_ul)  
-  coef <- c(model_ul$coefficients["ns_basis_ul1"], model_ul$coefficients["ns_basis_ul2"], model_ul$coefficients["ns_basis_ul3"])
-  ns_basis_deriv_ul <- deriv(ns_basis_ul)  
-  deriv_values_ul <- as.vector(ns_basis_deriv_ul %*% coef)  
-  marker_result_ul[[gene]] <- deriv_values_ul
-}
-
-marker_deriv_len <- data.frame(pseudotime = pseudotime_len, do.call(cbind, marker_result_len))
-colnames(marker_deriv_len) <- c("pseudotime", markers)
-
-marker_deriv_ul <- data.frame(pseudotime = pseudotime_ul, do.call(cbind, marker_result_ul))
-colnames(marker_deriv_ul) <- c("pseudotime", markers)
-
-ggplot(marker_deriv_len, aes(x = pseudotime)) +
-  geom_line(aes(y = `ENSG00000085465`), color = "red") +
-  geom_line(aes(y = `ENSG00000129654`), color = "green") +
-  geom_line(aes(y = `ENSG00000105519`), color = "blue") +
-  geom_line(aes(y = `ENSG00000160188`), color = "purple") +
-  labs(title = "Derivatives of Genes (len)",
-       x = "Pseudotime",
-       y = "Derivative") +
-  theme_minimal()
-
-ggplot(marker_deriv_ul, aes(x = pseudotime)) +
-  geom_line(aes(y = `ENSG00000085465`), color = "red") +
-  geom_line(aes(y = `ENSG00000129654`), color = "green") +
-  geom_line(aes(y = `ENSG00000105519`), color = "blue") +
-  geom_line(aes(y = `ENSG00000160188`), color = "purple") +
-  labs(title = "Derivatives of Genes (ul)",
-       x = "Pseudotime",
-       y = "Derivative") +
-  theme_minimal()
-
 # Extract key genes with monotonically decreasing graphs
 derivative_matrix_len <- derivative_df_len[, -1] ## remove the col of pseudotime
 derivative_matrix_ul <- derivative_df_ul[, -1] ## remove the col of pseudotime
