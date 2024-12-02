@@ -26,3 +26,49 @@ bulk_key_genes
 ## 12 NFKBID                        23.9                12.6                  1.89 
 ## 13 KCNK15                        19.7                 0.918               21.3  
 ## 14 FAM107A                       18.4                14.4                  1.28 
+
+# We focused on LCN2 as the most prominent key gene in the stemness of fallopian tube epithelium
+
+# Appendix
+LCN2_id <- "ENSG00000148346"
+
+expr_len <- as.numeric(df_len[LCN2_id, ])
+expr_ul <- as.numeric(df_ul[LCN2_id, ])
+
+ns_basis_len <- naturalSpline(pseudotime_len, df = 3)
+ns_basis_ul <- naturalSpline(pseudotime_ul, df = 3)
+
+model_len <- glm(expr_len ~ ns_basis_len)
+model_ul <- glm(expr_ul ~ ns_basis_ul)
+
+coef_len <- c(model_len$coefficients["ns_basis_len1"], model_len$coefficients["ns_basis_len2"], model_len$coefficients["ns_basis_len3"])
+intercept_len <- model_len$coefficients["(intercept)"]
+coef_ul <- c(model_ul$coefficients["ns_basis_ul1"], model_ul$coefficients["ns_basis_ul2"], model_ul$coefficients["ns_basis_ul3"])
+intercept_ul <- model_ul$coefficients["(intercept)"]
+
+fitted_values_len <- as.vector((ns_basis_len %*% coef_len) + intercept_len)
+fitted_values_ul <- as.vector((ns_basis_ul %*% coef_ul) + intercept_ul)
+
+plot_data_len <- data.frame(pseudotime = pseudotime_len, 
+                       expression = expr_len, 
+                       fitted = fitted_values_len) 
+
+plot_data_ul <- data.frame(pseudotime = pseudotime_ul, 
+                       expression = expr_ul, 
+                       fitted = fitted_values_ul) 
+
+ggplot(plot_data_len, aes(x = pseudotime)) +
+  geom_point(aes(y = expression), color = "red") +  
+  geom_line(aes(y = fitted), color = "blue") +   
+  labs(title = paste("Spline Fit: LCN2 [Lengyel et al]"),
+       x = "Pseudotime",
+       y = "Normalized LCN2 Expression") +
+  theme_minimal()
+
+ggplot(plot_data_ul, aes(x = pseudotime)) +
+  geom_point(aes(y = expression), color = "red") +  
+  geom_line(aes(y = fitted), color = "blue") +   
+  labs(title = paste("Spline Fit: LCN2 [Ulrich et al]"),
+       x = "Pseudotime",
+       y = "Normalized LCN2 Expression") +
+  theme_minimal()
