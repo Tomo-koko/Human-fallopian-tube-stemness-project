@@ -65,7 +65,6 @@ ggplot(plot_data_len, aes(x = pseudotime)) +
   theme_minimal()
 
 ggplot(plot_data_ul, aes(x = pseudotime)) +
-  geom_point(aes(y = expression), color = "red") +  
   geom_line(aes(y = fitted), color = "blue") +   
   labs(title = paste("Spline Fit: LCN2 [Ulrich et al]"),
        x = "Pseudotime",
