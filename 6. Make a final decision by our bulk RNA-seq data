@@ -42,23 +42,22 @@ model_len <- glm(expr_len ~ ns_basis_len)
 model_ul <- glm(expr_ul ~ ns_basis_ul)
 
 coef_len <- c(model_len$coefficients["ns_basis_len1"], model_len$coefficients["ns_basis_len2"], model_len$coefficients["ns_basis_len3"])
-intercept_len <- model_len$coefficients["(intercept)"]
+intercept_len <- model_len$coefficients["(Intercept)"]
 coef_ul <- c(model_ul$coefficients["ns_basis_ul1"], model_ul$coefficients["ns_basis_ul2"], model_ul$coefficients["ns_basis_ul3"])
-intercept_ul <- model_ul$coefficients["(intercept)"]
+intercept_ul <- model_ul$coefficients["(Intercept)"]
 
-fitted_values_len <- as.vector((ns_basis_len %*% coef_len) + intercept_len)
-fitted_values_ul <- as.vector((ns_basis_ul %*% coef_ul) + intercept_ul)
+fitted_values_len <- as.vector(ns_basis_len %*% coef_len)
+fitted_values_len <- fitted_values_len + intercept_len
+fitted_values_ul <- as.vector(ns_basis_ul %*% coef_ul)
+fitted_values_ul <- fitted_values_ul + intercept_ul
 
-plot_data_len <- data.frame(pseudotime = pseudotime_len, 
-                       expression = expr_len, 
+plot_data_len <- data.frame(pseudotime = pseudotime_len,
                        fitted = fitted_values_len) 
 
 plot_data_ul <- data.frame(pseudotime = pseudotime_ul, 
-                       expression = expr_ul, 
                        fitted = fitted_values_ul) 
 
-ggplot(plot_data_len, aes(x = pseudotime)) +
-  geom_point(aes(y = expression), color = "red") +  
+ggplot(plot_data_len, aes(x = pseudotime)) +  
   geom_line(aes(y = fitted), color = "blue") +   
   labs(title = paste("Spline Fit: LCN2 [Lengyel et al]"),
        x = "Pseudotime",
