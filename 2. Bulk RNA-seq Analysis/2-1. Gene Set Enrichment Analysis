@@ -1,0 +1,29 @@
+
+# Fix seed and figure font
+set.seed(42)
+theme_set(theme_gray(base_family = "Arial"))
+
+# Download our bulk-RNA-seq data from GEO database
+# GSE274309
+url_pkh <- "https://www.ncbi.nlm.nih.gov/geo/download/?acc=GSE274309&format=file&file=GSE274309%5FTPM%2Ecsv%2Egz"
+output_file_pkh_gz <- "GSE274309_TPM.csv.gz"
+download.file(url_pkh, destfile = output_file_pkh_gz)
+bulk_pkh <- read_csv(gzfile(output_file_pkh_gz))
+
+# Check the csv file
+head(bulk_pkh)
+##  A tibble: 6 × 3
+##   Gene_Symbol `PKH-R3(retained)_TPM` `PKH-R6(reduced)_TPM`
+##   <chr>                        <dbl>                 <dbl>
+## 1 A2M                          0.183                0.0922
+## 2 NAT1                        18.1                 20.1   
+## 3 NAT2                         0.104                0.393 
+## 4 SERPINA3                    20.0                  2.72  
+## 5 AAMP                       167.                 204.    
+## 6 AARS1                       66.7                 94.0   
+
+# Calculate the Ret/Red after adding very small number (0.01) to the tpm values in order to avoid "division by zero"
+bulk_pkh <- bulk_pkh %>%
+  mutate(`Normalized Ret/Red` = (`PKH-R3(retained)_TPM` + 0.01) / (`PKH-R6(reduced)_TPM` + 0.01))
+
+# Perform gene set enrichment analysis (GSEA) in terms of "hallmark gene sets" and "biological process in gene ontology"
