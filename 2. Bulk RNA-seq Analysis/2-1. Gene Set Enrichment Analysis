@@ -1,7 +1,6 @@
 
-# Fix seed and figure font
+# Fix seed
 set.seed(42)
-theme_set(theme_gray(base_family = "Arial"))
 
 # Download our bulk-RNA-seq data from GEO database
 # GSE274309
@@ -22,8 +21,21 @@ head(bulk_pkh)
 ## 5 AAMP                       167.                 204.    
 ## 6 AARS1                       66.7                 94.0   
 
-# Calculate the Ret/Red after adding very small number (0.01) to the tpm values in order to avoid "division by zero"
-bulk_pkh <- bulk_pkh %>%
-  mutate(`Normalized Ret/Red` = (`PKH-R3(retained)_TPM` + 0.01) / (`PKH-R6(reduced)_TPM` + 0.01))
+# Calculate log2(Ret/Red) after adding very small number (0.01) to the tpm values in order to avoid "division by zero"
+bulk_pkh_rank <- bulk_pkh %>%
+  mutate(`gene_rank` = log2((`PKH-R3(retained)_TPM` + 0.01) / (`PKH-R6(reduced)_TPM` + 0.01)))
 
-# Perform gene set enrichment analysis (GSEA) in terms of "hallmark gene sets" and "biological process in gene ontology"
+# Perform gene set enrichment analysis (GSEA) in terms of "hallmark gene sets"
+get_hallmark <- function(species = "Homo sapiens", category = "H") {
+  msigdbr(species = species, category = category) %>%
+    split(.$gs_name) %>% 
+    lapply(function(x) unique(x$gene_symbol)) 
+}
+hallmark <- get_hallmark()
+
+ranked_bulk_vector <- setNames(bulk_pkh_rank$gene_rank, bulk_pkh_rank$Gene_Symbol)
+fgsea_hallmark <- fgsea(pathways = hallmark, stats = ranked_bulk_vector)
+topPathwaysUp_hallmark <- fgsea_hallmark[NES > 0][head(order(pval), n=10), pathway]
+topPathwaysDown_hallmark <- fgsea_hallmark[NES < 0][head(order(pval), n=10), pathway]
+topPathways_hallmark <- c(topPathwaysUp_hallmark, rev(topPathwaysDown_hallmark))
+plotGseaTable(hallmark[topPathways_hallmark], ranked_bulk_vector, fgsea_hallmark, colwidths = c(30, 20, 6, 8, 8))
