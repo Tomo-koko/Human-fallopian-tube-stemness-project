@@ -3,6 +3,10 @@
 set.seed(42)
 theme_set(theme_gray(base_family = "Arial"))
 
+# Calculate the Ret/Red after adding very small number (0.01) to the tpm values in order to avoid "division by zero"
+bulk_pkh <- bulk_pkh %>%
+  mutate(`Normalized Ret/Red` = (`PKH-R3(retained)_TPM` + 0.01) / (`PKH-R6(reduced)_TPM` + 0.01))
+
 # Plot (x, y) = (log[PKH-R3(retained)_TPM], log[Normalized Ret/Red]) in the first quadrant
 bulk_pkh_filtered <- bulk_pkh %>%
   filter(`PKH-R3(retained)_TPM` > 1, `Normalized Ret/Red` > 1)
