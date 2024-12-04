@@ -52,7 +52,7 @@ important_genes$Gene_Symbol
 ## [46] "BNIP5"    "WFDC21P" 
 
 # Create an ENSEMBL ID set of the important genes (some genes include plural ENSEMBL IDs due to their subtypes)
-ensembl <- useEnsembl("ENSEMBL_MART_ENSEMBL", dataset = "hsapiens_gene_ensembl", version = 113)
+ensembl <- useEnsembl("ENSEMBL_MART_ENSEMBL", dataset = "hsapiens_gene_ensembl", version = 110)
 important_gene_symbols <- important_genes$Gene_Symbol 
 important_ensembl_ids <- getBM(attributes = c("hgnc_symbol", "ensembl_gene_id"), 
                      filters = "hgnc_symbol", 
