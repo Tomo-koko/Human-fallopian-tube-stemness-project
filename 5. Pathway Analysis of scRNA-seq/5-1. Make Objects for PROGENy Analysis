@@ -75,4 +75,4 @@ cleaned_combined_len_unique_matrix <- as.matrix(cleaned_combined_len_unique)
 row_names_len <- cleaned_combined_len_unique_matrix[, "hgnc_symbol"]
 rownames(cleaned_combined_len_unique_matrix) <- row_names_len
 len_progeny_matrix <- cleaned_combined_len_unique_matrix[, 2:2792]
-
+len_progeny_matrix <- apply(len_progeny_matrix, c(1, 2), as.numeric)
