@@ -107,7 +107,7 @@ important_ensembl_ids_len
 
 ensembl_len_list <- list(Dormancy_Gene_Set = important_ensembl_ids_len$ensembl_gene_id)
 
-# Run escape to execute single-cell enrichment analysis
+# Run escape to execute single-cell enrichment analysis in terms of the dormancy gene set
 ES.epi_filter_len <- escape.matrix(epi_filter_len, 
                                    method = "AUCell",
                                    gene.sets = ensembl_len_list, 
@@ -165,3 +165,56 @@ plot_cells(cds_len,
 pseudo_results_len <- graph_test(cds_len, neighbor_graph="principal_graph", cores=128)
 q_val_0_list_len <- subset(pseudo_results_len, q_value == 0)
 important_gene_ids_len <- row.names(q_val_0_list_len)
+
+
+-----------------------
+# Run escape to execute single-cell enrichment analysis in terms of cell-cycle gene set in gene ontology
+get_gobp <- function(species = "Homo sapiens", category = "C5", subcategory = "BP") {
+  msigdbr(species = species, category = category, subcategory = subcategory) %>%
+    split(.$gs_name) %>% 
+    lapply(function(x) unique(x$gene_symbol)) 
+}
+gobp <- get_gobp()
+cell_cycle_gs <- gobp$GOBP_CELL_CYCLE
+cell_cycle_ensembl_ids <- getBM(attributes = c("hgnc_symbol", "ensembl_gene_id"), 
+                     filters = "hgnc_symbol", 
+                     values = cell_cycle_gs, 
+                     mart = ensembl_110)
+
+cell_cycle_ensembl_ids_len <- cell_cycle_ensembl_ids %>%
+                              filter(ensembl_gene_id %in% epi_filter_len@assays$RNA$counts@Dimnames[[1]])
+head(cell_cycle_ensembl_ids_len)
+##   hgnc_symbol ensembl_gene_id
+## 1        AAAS ENSG00000094914
+## 2        AATF ENSG00000275700
+## 3       ABCB1 ENSG00000085563
+## 4        ABL1 ENSG00000097007
+## 5    ABRAXAS1 ENSG00000163322
+## 6    ABRAXAS2 ENSG00000165660
+
+setdiff(cell_cycle_gs, cell_cycle_ensembl_ids_len$hgnc_symbol)
+## [1] "ARNTL"    "C10orf99" "SLC9A3R1" "TRIM75P"  "ZBED9"
+setdiff(cell_cycle_ensembl_ids_len$hgnc_symbol, cell_cycle_gs)
+## character(0)
+dup_cell_cycle_len <- cell_cycle_ensembl_ids_len %>% filter(duplicated(cell_cycle_ensembl_ids_len$hgnc_symbol) == TRUE)
+dup_cell_cycle_len
+##   hgnc_symbol ensembl_gene_id
+## 1     GOLGA8M ENSG00000188626
+## 2       PINX1 ENSG00000254093
+cell_cycle_ensembl_ids_len %>% filter(hgnc_symbol %in% dup_cell_cycle_len$hgnc_symbol)
+##   hgnc_symbol ensembl_gene_id
+## 1     GOLGA8M ENSG00000261480
+## 2     GOLGA8M ENSG00000188626
+## 3       PINX1 ENSG00000258724
+## 4       PINX1 ENSG00000254093
+### These two genes have multiple Ensembl IDs but the portion in the gene set is very small; so, we removed neither of them
+
+cell_cycle_list_len <- list(Cell_Cycle_Gene_Set = cell_cycle_ensembl_ids_len$ensembl_gene_id)
+CC.epi_filter_len <- escape.matrix(epi_filter_len, 
+                                   method = "AUCell",
+                                   gene.sets = cell_cycle_list_len, 
+                                   groups = 3000, 
+                                   min.size = 5
+                                   )
+
+epi_filter_len <- AddMetaData(epi_filter_len, metadata = CC.epi_filter_len)
