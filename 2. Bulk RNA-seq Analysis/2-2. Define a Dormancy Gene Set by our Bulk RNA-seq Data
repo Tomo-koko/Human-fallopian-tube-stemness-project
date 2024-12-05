@@ -50,16 +50,3 @@ important_genes$Gene_Symbol
 ## [28] "SAA1"     "SAA2"     "CCL20"    "CXCL6"    "CXCL5"    "SLPI"     "TCN1"     "TSPAN8"   "VIM"     
 ## [37] "IL32"     "GDF15"    "UBD"      "DAPP1"    "SDCBP2"   "C15orf48" "IL4I1"    "IGFL1"    "SLC9A4"  
 ## [46] "BNIP5"    "WFDC21P" 
-
-# Create an ENSEMBL ID set of the important genes (some genes include plural ENSEMBL IDs due to their subtypes)
-ensembl <- useEnsembl("ENSEMBL_MART_ENSEMBL", dataset = "hsapiens_gene_ensembl", version = 110)
-important_gene_symbols <- important_genes$Gene_Symbol 
-important_ensembl_ids <- getBM(attributes = c("hgnc_symbol", "ensembl_gene_id"), 
-                     filters = "hgnc_symbol", 
-                     values = important_gene_symbols, 
-                     mart = ensembl)
-genesets <- list(
-  Dormancy_gene_set = important_ensembl_ids$ensembl_gene_id
-)
-
-genesets
