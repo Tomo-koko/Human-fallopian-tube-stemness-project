@@ -1,0 +1,78 @@
+
+# Fix seed and figure font
+set.seed(42)
+theme_set(theme_gray(base_family = "Arial"))
+
+# Create a PROGENy object from the scRNA-seq data by Lengyel et al
+prog_expr_len <- as.matrix(epi_filter_len@assays$RNA$data) ## Extract the normalized expression data from the scRNA-seq data by Lengyel et al
+prog_expr_len <- prog_expr_len + 0.01 ## Add a very small number to avoid "division by zero"
+prog_expr_len <- log10(prog_expr_len) ## Change the expression value to log-scale
+prog_ensembl_len <- rownames(prog_expr_len)
+
+len_ensembl_ids <- getBM(attributes = c("ensembl_gene_id", "hgnc_symbol"), 
+                     filters = "ensembl_gene_id", 
+                     values = prog_ensembl_len, 
+                     mart = ensembl_110)
+dup_ensembl_len <- len_ensembl_ids %>% filter(duplicated(len_ensembl_ids$ensembl_gene_id) == TRUE) ## Extract duplicated Ensembl IDs
+dup_ensembl_len
+##   ensembl_gene_id hgnc_symbol
+## 1 ENSG00000230417   LINC00856
+## 2 ENSG00000275449   MIR6859-3
+## 3 ENSG00000276085      CCL3L1
+## 4 ENSG00000278267   MIR6859-2
+## 5 ENSG00000278739   MIR6859-4
+dup_ensembl_len <- dup_ensembl_len$ensembl_gene_id
+len_ensembl_ids %>% filter(ensembl_gene_id %in% dup_ensembl_len)
+##    ensembl_gene_id hgnc_symbol
+## 1  ENSG00000230417   LINC00595
+## 2  ENSG00000230417   LINC00856
+## 3  ENSG00000275449   MIR6859-2
+## 4  ENSG00000275449   MIR6859-3
+## 5  ENSG00000276085      CCL3L3
+## 6  ENSG00000276085      CCL3L1
+## 7  ENSG00000278267   MIR6859-1
+## 8  ENSG00000278267   MIR6859-2
+## 9  ENSG00000278739   MIR6859-2
+## 10 ENSG00000278739   MIR6859-4
+
+## Define each Ensembl ID by one gene as below (referring to GeneCards partially)
+##    ensembl_gene_id hgnc_symbol
+## 1  ENSG00000230417   LINC00595
+## 4  ENSG00000275449   MIR6859-3
+## 5  ENSG00000276085      CCL3L3
+## 7  ENSG00000278267   MIR6859-1
+## 10 ENSG00000278739   MIR6859-4
+### Discard rows below
+### 2  ENSG00000230417   LINC00856
+### 3  ENSG00000275449   MIR6859-2
+### 6  ENSG00000276085      CCL3L1
+### 8  ENSG00000278267   MIR6859-2
+### 9  ENSG00000278739   MIR6859-2
+
+len_ensembl_ids <- len_ensembl_ids %>% filter(ensembl_gene_id != "ENSG00000230417" | hgnc_symbol != "LINC00856")
+len_ensembl_ids <- len_ensembl_ids %>% filter(ensembl_gene_id != "ENSG00000275449" | hgnc_symbol != "MIR6859-2")
+len_ensembl_ids <- len_ensembl_ids %>% filter(ensembl_gene_id != "ENSG00000276085" | hgnc_symbol != "CCL3L1")
+len_ensembl_ids <- len_ensembl_ids %>% filter(ensembl_gene_id != "ENSG00000278267" | hgnc_symbol != "MIR6859-2")
+len_ensembl_ids <- len_ensembl_ids %>% filter(ensembl_gene_id != "ENSG00000278739" | hgnc_symbol != "MIR6859-2")
+
+prog_expr_len_df <- as.data.frame(prog_expr_len)
+row.names(len_ensembl_ids) <- len_ensembl_ids$ensembl_gene_id
+prog_expr_len_df$Ensembl_ID <- rownames(prog_expr_len_df)
+len_ensembl_ids$Ensembl_ID <- rownames(len_ensembl_ids)
+combined_len_df <- merge(len_ensembl_ids, prog_expr_len_df, by = "Ensembl_ID", all = TRUE)
+rownames(combined_len_df) <- combined_len_df$Ensembl_ID
+combined_len_df <- combined_len_df[, -which(names(combined_len_df) == "Ensembl_ID")]
+combined_len_df <- combined_len_df[, -which(names(combined_len_df) == "ensembl_gene_id")]
+cleaned_combined_len_df <- combined_len_df %>% filter(!is.na(hgnc_symbol) & hgnc_symbol != "")
+cleaned_combined_len_df$total_expression <- apply(cleaned_combined_len_df[, 2:2792], 1, function(x) sum(x))
+cleaned_combined_len_unique <- cleaned_combined_len_df %>%
+  group_by(hgnc_symbol) %>%
+  slice_max(total_expression, n = 1, with_ties = TRUE) %>% 
+  slice_sample(n = 1) %>%  
+  ungroup() 
+cleaned_combined_len_unique$total_expression <- NULL
+cleaned_combined_len_unique_matrix <- as.matrix(cleaned_combined_len_unique)
+row_names_len <- cleaned_combined_len_unique_matrix[, "hgnc_symbol"]
+rownames(cleaned_combined_len_unique_matrix) <- row_names_len
+len_progeny_matrix <- cleaned_combined_len_unique_matrix[, 2:2792]
+
