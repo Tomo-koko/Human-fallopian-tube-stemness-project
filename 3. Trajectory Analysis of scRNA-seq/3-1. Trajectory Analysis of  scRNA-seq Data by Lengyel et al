@@ -44,7 +44,7 @@ ggplot(plot_epi_len, aes(x = Gene1, y = Gene2)) +
 　]
   epi_filter_len <- subset(sc_len, cells = cells_to_keep_len)
 
-# Create an ENSEMBL ID set of the important genes (some genes include plural ENSEMBL IDs due to their subtypes)
+# Create an ENSEMBL ID set of the important genes
 ensembl_110 <- useEnsembl("ENSEMBL_MART_ENSEMBL", dataset = "hsapiens_gene_ensembl", version = 110)
 important_gene_symbols <- important_genes$Gene_Symbol
 important_ensembl_ids <- getBM(attributes = c("hgnc_symbol", "ensembl_gene_id"), 
