@@ -3,7 +3,7 @@
 set.seed(42)
 theme_set(theme_gray(base_family = "Arial"))
 
-# 
+# Execute PROGENy Analysis
 progeny_results_len <- progeny(
                           expr = len_progeny_matrix,
                           scale = TRUE,
