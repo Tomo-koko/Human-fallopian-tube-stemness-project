@@ -44,10 +44,73 @@ ggplot(plot_epi_len, aes(x = Gene1, y = Gene2)) +
 　]
   epi_filter_len <- subset(sc_len, cells = cells_to_keep_len)
 
+# Create an ENSEMBL ID set of the important genes (some genes include plural ENSEMBL IDs due to their subtypes)
+ensembl_110 <- useEnsembl("ENSEMBL_MART_ENSEMBL", dataset = "hsapiens_gene_ensembl", version = 110)
+important_gene_symbols <- important_genes$Gene_Symbol
+important_ensembl_ids <- getBM(attributes = c("hgnc_symbol", "ensembl_gene_id"), 
+                     filters = "hgnc_symbol", 
+                     values = important_gene_symbols, 
+                     mart = ensembl_110)
+## We used the objects above for 3-2. Trajectory Analysis of scRNA-seq Data by Ulrich et al
+
+important_ensembl_ids_len <- important_ensembl_ids %>%
+                              filter(ensembl_gene_id %in% epi_filter_len@assays$RNA$counts@Dimnames[[1]])
+important_ensembl_ids_len
+##    hgnc_symbol ensembl_gene_id
+## 1      ALDH1A3 ENSG00000184254
+## 2       BCL2A1 ENSG00000140379
+## 3        BNIP5 ENSG00000189325
+## 4     C15orf48 ENSG00000166920
+## 5        CCL20 ENSG00000115009
+## 6         CD74 ENSG00000019582
+## 7          CFB ENSG00000243649
+## 8         CTSE ENSG00000196188
+## 9        CXCL5 ENSG00000163735
+## 10       CXCL6 ENSG00000124875
+## 11       DAPP1 ENSG00000070190
+## 12        EDN2 ENSG00000127129
+## 13       GDF15 ENSG00000130513
+## 14       HLA-B ENSG00000234745
+## 15    HLA-DPA1 ENSG00000231389
+## 16    HLA-DPB1 ENSG00000223865
+## 17    HLA-DQA1 ENSG00000196735
+## 18    HLA-DQA2 ENSG00000237541
+## 19     HLA-DRA ENSG00000204287
+## 20    HLA-DRB1 ENSG00000196126
+## 21    HLA-DRB5 ENSG00000198502
+## 22       HLA-F ENSG00000204642
+## 23        IDO1 ENSG00000131203
+## 24       IFI27 ENSG00000165949
+## 25        IFI6 ENSG00000126709
+## 26       IGFL1 ENSG00000188293
+## 27       IL1RN ENSG00000136689
+## 28        IL32 ENSG00000008517
+## 29       IL4I1 ENSG00000104951
+## 30        KLK7 ENSG00000169035
+## 31        MMP7 ENSG00000137673
+## 32        MUC4 ENSG00000145113
+## 33         PI3 ENSG00000124102
+## 34        PIGR ENSG00000162896
+## 35        PLAU ENSG00000122861
+## 36       PLAUR ENSG00000011422
+## 37        SAA1 ENSG00000173432
+## 38        SAA2 ENSG00000134339
+## 39      SDCBP2 ENSG00000125775
+## 40    SERPINB2 ENSG00000197632
+## 41      SLC9A4 ENSG00000180251
+## 42        SLPI ENSG00000124107
+## 43        TCN1 ENSG00000134827
+## 44      TSPAN8 ENSG00000127324
+## 45         UBD ENSG00000213886
+## 46         VIM ENSG00000026025
+## 47     WFDC21P ENSG00000261040
+
+ensembl_len_list <- list(Dormancy_Gene_Set = important_ensembl_ids_len$ensembl_gene_id)
+
 # Run escape to execute single-cell enrichment analysis
 ES.epi_filter_len <- escape.matrix(epi_filter_len, 
                                    method = "AUCell",
-                                   gene.sets = genesets, 
+                                   gene.sets = ensembl_list_len, 
                                    groups = 3000, 
                                    min.size = 5
                                    )
