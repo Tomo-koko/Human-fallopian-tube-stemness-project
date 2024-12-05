@@ -82,5 +82,5 @@ Key_Genes_in_Dormancy_List <- getBM(
   attributes = c("ensembl_gene_id", "hgnc_symbol"),  
   filters = "ensembl_gene_id",                       
   values = Key_Genes_in_Dormancy,                    
-  mart = ensembl                                     
+  mart = ensembl_110                                     
 )
