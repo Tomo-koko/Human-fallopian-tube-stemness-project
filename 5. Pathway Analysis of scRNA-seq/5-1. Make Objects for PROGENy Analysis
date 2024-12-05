@@ -76,3 +76,60 @@ row_names_len <- cleaned_combined_len_unique_matrix[, "hgnc_symbol"]
 rownames(cleaned_combined_len_unique_matrix) <- row_names_len
 len_progeny_matrix <- cleaned_combined_len_unique_matrix[, 2:2792]
 len_progeny_matrix <- apply(len_progeny_matrix, c(1, 2), as.numeric)
+
+# Create a PROGENy object from the scRNA-seq data by Ulrich et al
+prog_expr_ul <- as.matrix(epi_filter_ul@assays$RNA$data) ## Extract the normalized expression data from the scRNA-seq data by Ulrich et al
+prog_expr_ul <- prog_expr_ul + 0.01 ## Add a very small number to avoid "division by zero"
+prog_expr_ul <- log10(prog_expr_ul) ## Change the expression value to log-scale
+prog_ensembl_ul <- rownames(prog_expr_ul)
+
+ul_ensembl_ids <- getBM(attributes = c("ensembl_gene_id", "hgnc_symbol"), 
+                     filters = "ensembl_gene_id", 
+                     values = prog_ensembl_ul, 
+                     mart = ensembl_110)
+dup_ensembl_ul <- ul_ensembl_ids %>% filter(duplicated(ul_ensembl_ids$ensembl_gene_id) == TRUE) ## Extract duplicated Ensembl IDs
+dup_ensembl_ul
+##   ensembl_gene_id hgnc_symbol
+## 1 ENSG00000230417   LINC00856
+## 2 ENSG00000276085      CCL3L1
+
+dup_ensembl_ul <- dup_ensembl_ul$ensembl_gene_id
+ul_ensembl_ids %>% filter(ensembl_gene_id %in% dup_ensembl_ul)
+##   ensembl_gene_id hgnc_symbol
+## 1 ENSG00000230417   LINC00595
+## 2 ENSG00000230417   LINC00856
+## 3 ENSG00000276085      CCL3L3
+## 4 ENSG00000276085      CCL3L1
+
+## Define each Ensembl ID by one gene as below (referring to GeneCards partially)
+##   ensembl_gene_id hgnc_symbol
+## 1 ENSG00000230417   LINC00595
+## 3 ENSG00000276085      CCL3L3
+### Discard rows below
+### 2 ENSG00000230417   LINC00856
+### 4 ENSG00000276085      CCL3L1
+
+ul_ensembl_ids <- ul_ensembl_ids %>% filter(ensembl_gene_id != "ENSG00000230417" | hgnc_symbol != "LINC00856")
+ul_ensembl_ids <- ul_ensembl_ids %>% filter(ensembl_gene_id != "ENSG00000276085" | hgnc_symbol != "CCL3L1")
+
+prog_expr_ul_df <- as.data.frame(prog_expr_ul)
+row.names(ul_ensembl_ids) <- ul_ensembl_ids$ensembl_gene_id
+prog_expr_ul_df$Ensembl_ID <- rownames(prog_expr_ul_df)
+ul_ensembl_ids$Ensembl_ID <- rownames(ul_ensembl_ids)
+combined_ul_df <- merge(ul_ensembl_ids, prog_expr_ul_df, by = "Ensembl_ID", all = TRUE)
+rownames(combined_ul_df) <- combined_ul_df$Ensembl_ID
+combined_ul_df <- combined_ul_df[, -which(names(combined_ul_df) == "Ensembl_ID")]
+combined_ul_df <- combined_ul_df[, -which(names(combined_ul_df) == "ensembl_gene_id")]
+cleaned_combined_ul_df <- combined_ul_df %>% filter(!is.na(hgnc_symbol) & hgnc_symbol != "")
+cleaned_combined_ul_df$total_expression <- apply(cleaned_combined_ul_df[, 2:9679], 1, function(x) sum(x))
+cleaned_combined_ul_unique <- cleaned_combined_ul_df %>%
+  group_by(hgnc_symbol) %>%
+  slice_max(total_expression, n = 1, with_ties = TRUE) %>% 
+  slice_sample(n = 1) %>%  
+  ungroup() 
+cleaned_combined_ul_unique$total_expression <- NULL
+cleaned_combined_ul_unique_matrix <- as.matrix(cleaned_combined_ul_unique)
+row_names_ul <- cleaned_combined_ul_unique_matrix[, "hgnc_symbol"]
+rownames(cleaned_combined_ul_unique_matrix) <- row_names_ul
+ul_progeny_matrix <- cleaned_combined_ul_unique_matrix[, 2:9679]
+ul_progeny_matrix <- apply(ul_progeny_matrix, c(1, 2), as.numeric)
