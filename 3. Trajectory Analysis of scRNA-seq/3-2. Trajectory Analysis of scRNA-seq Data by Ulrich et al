@@ -44,10 +44,17 @@ ggplot(plot_epi_ul, aes(x = Gene1, y = Gene2)) +
 　]
   epi_filter_ul <- subset(sc_ul, cells = cells_to_keep_ul)
 
+# Create an ENSEMBL ID set of the important genes
+important_ensembl_ids_ul <- important_ensembl_ids %>%
+                              filter(ensembl_gene_id %in% epi_filter_ul@assays$RNA$counts@Dimnames[[1]])
+important_ensembl_ids_ul
+
+ensembl_ul_list <- list(Dormancy_Gene_Set = important_ensembl_ids_ul$ensembl_gene_id)
+
 # Run escape to execute single-cell enrichment analysis
 ES.epi_filter_ul <- escape.matrix(epi_filter_ul, 
                                    method = "AUCell",
-                                   gene.sets = genesets, 
+                                   gene.sets = ensembl_ul_list, 
                                    groups = 3000, 
                                    min.size = 5
                                    )
