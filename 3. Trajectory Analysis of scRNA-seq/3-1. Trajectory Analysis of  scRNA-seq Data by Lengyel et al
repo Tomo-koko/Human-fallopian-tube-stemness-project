@@ -110,7 +110,7 @@ ensembl_len_list <- list(Dormancy_Gene_Set = important_ensembl_ids_len$ensembl_g
 # Run escape to execute single-cell enrichment analysis
 ES.epi_filter_len <- escape.matrix(epi_filter_len, 
                                    method = "AUCell",
-                                   gene.sets = ensembl_list_len, 
+                                   gene.sets = ensembl_len_list, 
                                    groups = 3000, 
                                    min.size = 5
                                    )
