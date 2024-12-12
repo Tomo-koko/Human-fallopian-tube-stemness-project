@@ -26,7 +26,7 @@ BiocManager::install("ggrastr", version = "3.20")
 BiocManager::install("biomaRt", version = "3.20") 
 BiocManager::install("progeny", version = "3.20") 
 
-# SHIROKANE required annoying methods to install some packages...
+# SHIROKANE required some procedures to install some packages...
 remotes::install_version("terra", version = "1.7-83", configure.args = c(
   "with_sqlite3_lib=/usr/local/package/sqlite3/3.44.2/lib/",
   "--with-proj-lib=/usr/local/package/proj/8.1.1/lib",
