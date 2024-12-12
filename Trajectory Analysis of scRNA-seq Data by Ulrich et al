@@ -503,3 +503,5 @@ dev.off()
 pseudo_results_ul <- graph_test(cds_ul, neighbor_graph="principal_graph", cores=128)
 q_val_0_list_ul <- subset(pseudo_results_ul, q_value == 0)
 important_gene_ids_ul <- row.names(q_val_0_list_ul)
+length(important_gene_ids_ul)
+## 
