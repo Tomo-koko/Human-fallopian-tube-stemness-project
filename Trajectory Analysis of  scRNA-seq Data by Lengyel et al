@@ -1,5 +1,5 @@
 
-# Fix seed and figure font
+# Fix seed
 set.seed(42)
 
 # Load scRNA-seq data by Lengyel et al
