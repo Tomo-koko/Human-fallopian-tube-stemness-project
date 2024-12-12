@@ -1,7 +1,6 @@
 
-# Fix seed and figure font
+# Fix seed
 set.seed(42)
-theme_set(theme_gray(base_family = "Arial"))
 
 # Extract the expression of the key genes in dormancy in our bulk RNA-seq result
 bulk_key_genes <- bulk_pkh %>%
