@@ -475,7 +475,7 @@ plot_genes_in_pseudotime(cds_conv_len,
                          cell_size = 0.5,
                          min_expr= 1)
 
-pdf("~/output/conv_markers_pseudotime.pdf", width = 8, height = 12)
+pdf("~/output/conv_markers_pseudotime_len.pdf", width = 8, height = 12)
 plot_genes_in_pseudotime(cds_conv_len,
                          panel_order = conv_markers,
                          color_cells_by="donor_id",
