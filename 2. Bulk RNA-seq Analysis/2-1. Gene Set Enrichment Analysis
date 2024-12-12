@@ -54,8 +54,8 @@ fgsea_hallmark <- fgsea(pathways = hallmark, stats = ranked_bulk_vector)
 topPathwaysUp_hallmark <- fgsea_hallmark[NES > 0][head(order(pval), n=10), pathway]
 topPathwaysDown_hallmark <- fgsea_hallmark[NES < 0][head(order(pval), n=10), pathway]
 topPathways_hallmark <- c(topPathwaysUp_hallmark, rev(topPathwaysDown_hallmark))
-plotGseaTable(hallmark[topPathways_hallmark], ranked_bulk_vector, fgsea_hallmark, colwidths = c(30, 20, 6, 8, 8))
+plotGseaTable(hallmark[topPathways_hallmark], ranked_bulk_vector, fgsea_hallmark, colwidths = c(30, 20, 6, 6, 6))
 
 pdf("~/output/GSEA_hallmark.pdf", width = 20, height = 12)
-plotGseaTable(hallmark[topPathways_hallmark], ranked_bulk_vector, fgsea_hallmark, colwidths = c(30, 20, 6, 8, 8))
+plotGseaTable(hallmark[topPathways_hallmark], ranked_bulk_vector, fgsea_hallmark, colwidths = c(30, 20, 6, 6, 6))
 dev.off()
