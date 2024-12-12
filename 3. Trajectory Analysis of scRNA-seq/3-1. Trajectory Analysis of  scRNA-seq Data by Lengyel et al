@@ -1,13 +1,14 @@
 
 # Fix seed and figure font
 set.seed(42)
-theme_set(theme_gray(base_family = "Arial"))
 
 # Load scRNA-seq data by Lengyel et al
 url_len <- "https://datasets.cellxgene.cziscience.com/9e7dd889-c863-46f9-9ab9-99175e23fd75.rds"
 output_file_len <- "9e7dd889-c863-46f9-9ab9-99175e23fd75.rds"
 download.file(url_len, destfile = output_file_len)
 sc_len <- readRDS(output_file_len)
+length(sc_len@assays$RNA@counts@Dimnames[[2]])
+## 60574
 
 # Extract epithelial cells by the expression of EpCAM (ENSG00000119888) and CDH1 (ENSG00000039068)
 sc_len@meta.data$cell_type <- NULL
@@ -36,6 +37,27 @@ ggplot(plot_epi_len, aes(x = Gene1, y = Gene2)) +
     label = paste("EpCAM/CDH1(+/+) epithelial cells:", epithelial_cells_len),
     hjust = 1, vjust = 1, color = "black", size = 5
   )
+
+pdf("~/output/epithelial_cell_counts_len.pdf", width = 8, height = 8)
+ggplot(plot_epi_len, aes(x = Gene1, y = Gene2)) +
+  geom_point(size = 1, alpha = 0.7) +
+  geom_vline(xintercept = 0.1, linetype = "dashed", color = "red") +  
+  geom_hline(yintercept = 0.1, linetype = "dashed", color = "blue") + 
+  labs(
+    title = "Epithelial characteristics of all cells in the dataset by Lengyel et al",
+    x = "Expression of EpCAM",
+    y = "Expression of CDH1"
+  ) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(hjust = 0.5)
+  ) +
+  annotate(
+    "text", x = max(plot_epi_len$Gene1), y = max(plot_epi_len$Gene2), 
+    label = paste("EpCAM/CDH1(+/+) epithelial cells:", epithelial_cells_len),
+    hjust = 1, vjust = 1, color = "black", size = 5
+  )
+dev.off()
 
   ## Threshold to define epithelial cells: the expression of EpCAM >= 0.1 and CDH >= 0.1
   data_len <- sc_len@assays$RNA@data
@@ -117,6 +139,109 @@ ES.epi_filter_len <- escape.matrix(epi_filter_len,
 
 epi_filter_len <- AddMetaData(epi_filter_len, metadata = ES.epi_filter_len)
 
+# Create a PROGENy object from the scRNA-seq data by Lengyel et al
+prog_expr_len <- as.matrix(epi_filter_len@assays$RNA$data) ## Extract the normalized expression data from the scRNA-seq data by Lengyel et al
+prog_expr_len <- prog_expr_len + 0.01 ## Add a very small number to avoid "division by zero"
+prog_expr_len <- log10(prog_expr_len) ## Change the expression value to log-scale
+prog_ensembl_len <- rownames(prog_expr_len)
+
+len_ensembl_ids <- getBM(attributes = c("ensembl_gene_id", "hgnc_symbol"), 
+                     filters = "ensembl_gene_id", 
+                     values = prog_ensembl_len, 
+                     mart = ensembl_110)
+dup_ensembl_len <- len_ensembl_ids %>% filter(duplicated(len_ensembl_ids$ensembl_gene_id) == TRUE) ## Extract duplicated Ensembl IDs
+dup_ensembl_len
+##   ensembl_gene_id hgnc_symbol
+## 1 ENSG00000230417   LINC00856
+## 2 ENSG00000275449   MIR6859-3
+## 3 ENSG00000276085      CCL3L1
+## 4 ENSG00000278267   MIR6859-2
+## 5 ENSG00000278739   MIR6859-4
+dup_ensembl_len <- dup_ensembl_len$ensembl_gene_id
+len_ensembl_ids %>% filter(ensembl_gene_id %in% dup_ensembl_len)
+##    ensembl_gene_id hgnc_symbol
+## 1  ENSG00000230417   LINC00595
+## 2  ENSG00000230417   LINC00856
+## 3  ENSG00000275449   MIR6859-2
+## 4  ENSG00000275449   MIR6859-3
+## 5  ENSG00000276085      CCL3L3
+## 6  ENSG00000276085      CCL3L1
+## 7  ENSG00000278267   MIR6859-1
+## 8  ENSG00000278267   MIR6859-2
+## 9  ENSG00000278739   MIR6859-2
+## 10 ENSG00000278739   MIR6859-4
+
+## Define each Ensembl ID by one gene as below (referring to GeneCards partially)
+##    ensembl_gene_id hgnc_symbol
+## 1  ENSG00000230417   LINC00595
+## 4  ENSG00000275449   MIR6859-3
+## 5  ENSG00000276085      CCL3L3
+## 7  ENSG00000278267   MIR6859-1
+## 10 ENSG00000278739   MIR6859-4
+### Discard rows below
+### 2  ENSG00000230417   LINC00856
+### 3  ENSG00000275449   MIR6859-2
+### 6  ENSG00000276085      CCL3L1
+### 8  ENSG00000278267   MIR6859-2
+### 9  ENSG00000278739   MIR6859-2
+
+len_ensembl_ids <- len_ensembl_ids %>% filter(ensembl_gene_id != "ENSG00000230417" | hgnc_symbol != "LINC00856")
+len_ensembl_ids <- len_ensembl_ids %>% filter(ensembl_gene_id != "ENSG00000275449" | hgnc_symbol != "MIR6859-2")
+len_ensembl_ids <- len_ensembl_ids %>% filter(ensembl_gene_id != "ENSG00000276085" | hgnc_symbol != "CCL3L1")
+len_ensembl_ids <- len_ensembl_ids %>% filter(ensembl_gene_id != "ENSG00000278267" | hgnc_symbol != "MIR6859-2")
+len_ensembl_ids <- len_ensembl_ids %>% filter(ensembl_gene_id != "ENSG00000278739" | hgnc_symbol != "MIR6859-2")
+
+prog_expr_len_df <- as.data.frame(prog_expr_len)
+row.names(len_ensembl_ids) <- len_ensembl_ids$ensembl_gene_id
+prog_expr_len_df$Ensembl_ID <- rownames(prog_expr_len_df)
+len_ensembl_ids$Ensembl_ID <- rownames(len_ensembl_ids)
+combined_len_df <- merge(len_ensembl_ids, prog_expr_len_df, by = "Ensembl_ID", all = TRUE)
+rownames(combined_len_df) <- combined_len_df$Ensembl_ID
+combined_len_df <- combined_len_df[, -which(names(combined_len_df) == "Ensembl_ID")]
+combined_len_df <- combined_len_df[, -which(names(combined_len_df) == "ensembl_gene_id")]
+cleaned_combined_len_df <- combined_len_df %>% filter(!is.na(hgnc_symbol) & hgnc_symbol != "")
+cleaned_combined_len_df$total_expression <- apply(cleaned_combined_len_df[, 2:2792], 1, function(x) sum(x))
+cleaned_combined_len_unique <- cleaned_combined_len_df %>%
+  group_by(hgnc_symbol) %>%
+  slice_max(total_expression, n = 1, with_ties = TRUE) %>% 
+  slice_sample(n = 1) %>%  
+  ungroup() 
+cleaned_combined_len_unique$total_expression <- NULL
+cleaned_combined_len_unique_matrix <- as.matrix(cleaned_combined_len_unique)
+row_names_len <- cleaned_combined_len_unique_matrix[, "hgnc_symbol"]
+rownames(cleaned_combined_len_unique_matrix) <- row_names_len
+len_progeny_matrix <- cleaned_combined_len_unique_matrix[, 2:2792]
+len_progeny_matrix <- apply(len_progeny_matrix, c(1, 2), as.numeric)
+
+# Execute PROGENy Analysis to the scRNA-seq data by Lengyel et al
+progeny_results_len <- progeny(
+                          expr = len_progeny_matrix,
+                          scale = TRUE,
+                          organism = "Human",
+                          top = 100,
+                          perm = 1,
+                          verbose = TRUE,
+                          assay_name = "normalized expression values"
+                          )
+## Number of genes used per pathway to compute progeny scores:
+## Androgen: 98 (98%)
+## EGFR: 93 (93%)
+## Estrogen: 97 (97%)
+## Hypoxia: 98 (98%)
+## JAK-STAT: 98 (98%)
+## MAPK: 97 (97%)
+## NFkB: 100 (100%)
+## p53: 93 (93%)
+## PI3K: 85 (85%)
+## TGFb: 96 (96%)
+## TNFa: 97 (97%)
+## Trail: 73 (73%)
+## VEGF: 87 (87%)
+## WNT: 97 (97%)
+
+progeny_results_len_df <- as.data.frame(progeny_results_len)
+epi_filter_len <- AddMetaData(epi_filter_len, metadata = progeny_results_len_df)
+
 # Prepare some objects for monocle3 analysis
 counts_len <- GetAssayData(epi_filter_len, assay = "RNA", layer = "counts")
 gene_metadata_len <- data.frame(gene_short_name = rownames(counts_len))
@@ -134,7 +259,169 @@ cds_len <- align_cds(cds_len, preprocess_method = "PCA", alignment_group = "dono
 cds_len <- reduce_dimension(cds_len, preprocess_method = "Aligned", reduction_method = "UMAP")
 cds_len <- cluster_cells(cds_len, preprocess_method = "Aligned", k = 20, reduction_method = "UMAP")
 cds_len <- learn_graph(cds_len, use_partition = FALSE)
-plot_cells(cds_len, color_cells_by = "cluster")
+plot_cells(cds_len, 
+           color_cells_by = "donor_id",
+           cell_size = 0.5,
+           show_trajectory_graph = FALSE,
+           label_cell_groups= FALSE,
+           label_leaves= FALSE,
+           label_branch_points= FALSE)
+
+pdf("~/output/batch_removed_donor_id_len.pdf", width = 8, height = 8)
+plot_cells(cds_len, 
+           color_cells_by = "donor_id",
+           cell_size = 0.5,
+           show_trajectory_graph = FALSE,
+           label_cell_groups= FALSE,
+           label_leaves= FALSE,
+           label_branch_points= FALSE)
+dev.off()
+
+# Examine the expression of conventional differentiation marker genes
+# PAX8: ENSG00000125618
+# KRT7: ENSG00000135480
+# OVGP1: ENSG00000085465
+# FOXJ1: ENSG00000129654
+# CAPS: ENSG00000105519
+plot_cells(cds_len, 
+           gene = "ENSG00000125618",
+           cell_size = 1,
+           show_trajectory_graph = FALSE,
+           label_cell_groups= FALSE,
+           label_leaves= FALSE,
+           label_branch_points= FALSE,
+           graph_label_size= 3,
+           min_expr = 10)
+plot_cells(cds_len, 
+           gene = "ENSG00000135480",
+           cell_size = 1,
+           show_trajectory_graph = FALSE,
+           label_cell_groups= FALSE,
+           label_leaves= FALSE,
+           label_branch_points= FALSE,
+           graph_label_size= 3,
+           min_expr = 10)
+plot_cells(cds_len, 
+           gene = "ENSG00000085465",
+           cell_size = 1,
+           show_trajectory_graph = FALSE,
+           label_cell_groups= FALSE,
+           label_leaves= FALSE,
+           label_branch_points= FALSE,
+           graph_label_size= 3,
+           min_expr = 10)
+plot_cells(cds_len, 
+           gene = "ENSG00000129654",
+           cell_size = 1,
+           show_trajectory_graph = FALSE,
+           label_cell_groups= FALSE,
+           label_leaves= FALSE,
+           label_branch_points= FALSE,
+           graph_label_size= 3,
+           min_expr = 10)
+plot_cells(cds_len, 
+           gene = "ENSG00000105519",
+           cell_size = 1,
+           show_trajectory_graph = FALSE,
+           label_cell_groups= FALSE,
+           label_leaves= FALSE,
+           label_branch_points= FALSE,
+           graph_label_size= 3,
+           min_expr = 10)
+
+pdf("~/output/PAX8_len.pdf", width = 8, height = 8)
+plot_cells(cds_len, 
+           gene = "ENSG00000125618",
+           cell_size = 1,
+           show_trajectory_graph = FALSE,
+           label_cell_groups= FALSE,
+           label_leaves= FALSE,
+           label_branch_points= FALSE,
+           graph_label_size= 3,
+           min_expr = 10)
+dev.off()
+pdf("~/output/KRT7_len.pdf", width = 8, height = 8)
+plot_cells(cds_len, 
+           gene = "ENSG00000135480",
+           cell_size = 1,
+           show_trajectory_graph = FALSE,
+           label_cell_groups= FALSE,
+           label_leaves= FALSE,
+           label_branch_points= FALSE,
+           graph_label_size= 3,
+           min_expr = 10)
+dev.off()
+pdf("~/output/OVGP1_len.pdf", width = 8, height = 8)
+plot_cells(cds_len, 
+           gene = "ENSG00000085465",
+           cell_size = 1,
+           show_trajectory_graph = FALSE,
+           label_cell_groups= FALSE,
+           label_leaves= FALSE,
+           label_branch_points= FALSE,
+           graph_label_size= 3,
+           min_expr = 10)
+dev.off()
+pdf("~/output/FOXJ1_len.pdf", width = 8, height = 8)
+plot_cells(cds_len, 
+           gene = "ENSG00000129654",
+           cell_size = 1,
+           show_trajectory_graph = FALSE,
+           label_cell_groups= FALSE,
+           label_leaves= FALSE,
+           label_branch_points= FALSE,
+           graph_label_size= 3,
+           min_expr = 10)
+dev.off()
+pdf("~/output/CAPS_len.pdf", width = 8, height = 8)
+plot_cells(cds_len, 
+           gene = "ENSG00000105519",
+           cell_size = 1,
+           show_trajectory_graph = FALSE,
+           label_cell_groups= FALSE,
+           label_leaves= FALSE,
+           label_branch_points= FALSE,
+           graph_label_size= 3,
+           min_expr = 10)
+dev.off()
+
+# Examine the activation of the dormancy gene set
+plot_cells(cds_len, 
+           color_cells_by = "Dormancy_Gene_Set",
+           cell_size = 1,
+           show_trajectory_graph = FALSE,
+           label_cell_groups= FALSE,
+           label_leaves= FALSE,
+           label_branch_points= FALSE)
+
+pdf("~/output/DGS_len.pdf", width = 9, height = 8)
+plot_cells(cds_len, 
+           color_cells_by = "Dormancy_Gene_Set",
+           cell_size = 1,
+           show_trajectory_graph = FALSE,
+           label_cell_groups= FALSE,
+           label_leaves= FALSE,
+           label_branch_points= FALSE)
+dev.off()
+
+# Draw a graph on the UMAP
+plot_cells(cds_len,
+           cell_size = 1,
+           color_cells_by = "donor_id",
+           label_cell_groups= FALSE,
+           label_leaves= FALSE,
+           label_branch_points= FALSE,
+           graph_label_size= 1.5)
+
+pdf("~/output/graph_on_UMAP_len.pdf", width = 8, height = 8)
+plot_cells(cds_len,
+           cell_size = 1,
+           color_cells_by = "donor_id",
+           label_cell_groups= FALSE,
+           label_leaves= FALSE,
+           label_branch_points= FALSE,
+           graph_label_size= 1.5)
+dev.off()
 
 # Fix a root node programatically by the AUCell enrichment score and calculate the pseudotime
 get_meta_based_principal_node <- function(cds, meta_column) {
@@ -152,69 +439,92 @@ get_meta_based_principal_node <- function(cds, meta_column) {
     ))]
   root_pr_nodes
 }
-root_pr_nodes_len <- get_meta_based_principal_node(cds_len, "Dormancy_gene_set")
+root_pr_nodes_len <- get_meta_based_principal_node(cds_len, "Dormancy_Gene_Set")
 cds_len <- order_cells(cds_len, root_pr_nodes = root_pr_nodes_len)
 plot_cells(cds_len,
            color_cells_by = "pseudotime",
+           show_trajectory_graph = FALSE,
+           cell_size = 1,
            label_cell_groups= FALSE,
            label_leaves= FALSE,
            label_branch_points= FALSE,
            graph_label_size= 1.5)
 
+pdf("~/output/pseudotime_len.pdf", width = 8, height = 8)
+plot_cells(cds_len,
+           color_cells_by = "pseudotime",
+           show_trajectory_graph = FALSE,
+           cell_size = 1,
+           label_cell_groups= FALSE,
+           label_leaves= FALSE,
+           label_branch_points= FALSE,
+           graph_label_size= 1.5)
+dev.off()
+
+# Examine the expression of conventional differential marker genes along pseudotime
+# PAX8: ENSG00000125618
+# KRT7: ENSG00000135480
+# OVGP1: ENSG00000085465
+# FOXJ1: ENSG00000129654
+# CAPS: ENSG00000105519
+conv_markers <- c("ENSG00000125618", "ENSG00000135480", "ENSG00000085465", "ENSG00000129654", "ENSG00000105519")
+cds_conv_len <- cds_len[rowData(cds_len)$gene_short_name %in% conv_markers]
+plot_genes_in_pseudotime(cds_conv_len,
+                         panel_order = conv_markers,
+                         color_cells_by="donor_id",
+                         cell_size = 0.5,
+                         min_expr= 1)
+
+pdf("~/output/conv_markers_pseudotime.pdf", width = 8, height = 12)
+plot_genes_in_pseudotime(cds_conv_len,
+                         panel_order = conv_markers,
+                         color_cells_by="donor_id",
+                         cell_size = 0.5,
+                         min_expr= 1)
+dev.off()
+
+# Examine the activation of NFkB and EGFR pathways on the UMAP
+plot_cells(cds_len,
+           color_cells_by = "NFkB",
+           show_trajectory_graph = FALSE,
+           cell_size = 1,
+           label_cell_groups= FALSE,
+           label_leaves= FALSE,
+           label_branch_points= FALSE,
+           graph_label_size= 1.5)
+
+pdf("~/output/NFkB_len.pdf", width = 8, height = 8)
+plot_cells(cds_len,
+           color_cells_by = "NFkB",
+           show_trajectory_graph = FALSE,
+           cell_size = 1,
+           label_cell_groups= FALSE,
+           label_leaves= FALSE,
+           label_branch_points= FALSE,
+           graph_label_size= 1.5)
+dev.off()
+
+plot_cells(cds_len,
+           color_cells_by = "EGFR",
+           show_trajectory_graph = FALSE,
+           cell_size = 1,
+           label_cell_groups= FALSE,
+           label_leaves= FALSE,
+           label_branch_points= FALSE,
+           graph_label_size= 1.5)
+
+pdf("~/output/EGFR_len.pdf", width = 8, height = 8)
+plot_cells(cds_len,
+           color_cells_by = "EGFR",
+           show_trajectory_graph = FALSE,
+           cell_size = 1,
+           label_cell_groups= FALSE,
+           label_leaves= FALSE,
+           label_branch_points= FALSE,
+           graph_label_size= 1.5)
+dev.off()
+
 # Explore the important genes changing their expression along pseudotime
 pseudo_results_len <- graph_test(cds_len, neighbor_graph="principal_graph", cores=128)
 q_val_0_list_len <- subset(pseudo_results_len, q_value == 0)
 important_gene_ids_len <- row.names(q_val_0_list_len)
-
-
------------------------
-# Run escape to execute single-cell enrichment analysis in terms of cell-cycle gene set in gene ontology
-get_gobp <- function(species = "Homo sapiens", category = "C5", subcategory = "BP") {
-  msigdbr(species = species, category = category, subcategory = subcategory) %>%
-    split(.$gs_name) %>% 
-    lapply(function(x) unique(x$gene_symbol)) 
-}
-gobp <- get_gobp()
-cell_cycle_gs <- gobp$GOBP_CELL_CYCLE
-cell_cycle_ensembl_ids <- getBM(attributes = c("hgnc_symbol", "ensembl_gene_id"), 
-                     filters = "hgnc_symbol", 
-                     values = cell_cycle_gs, 
-                     mart = ensembl_110)
-
-cell_cycle_ensembl_ids_len <- cell_cycle_ensembl_ids %>%
-                              filter(ensembl_gene_id %in% epi_filter_len@assays$RNA$counts@Dimnames[[1]])
-head(cell_cycle_ensembl_ids_len)
-##   hgnc_symbol ensembl_gene_id
-## 1        AAAS ENSG00000094914
-## 2        AATF ENSG00000275700
-## 3       ABCB1 ENSG00000085563
-## 4        ABL1 ENSG00000097007
-## 5    ABRAXAS1 ENSG00000163322
-## 6    ABRAXAS2 ENSG00000165660
-
-setdiff(cell_cycle_gs, cell_cycle_ensembl_ids_len$hgnc_symbol)
-## [1] "ARNTL"    "C10orf99" "SLC9A3R1" "TRIM75P"  "ZBED9"
-setdiff(cell_cycle_ensembl_ids_len$hgnc_symbol, cell_cycle_gs)
-## character(0)
-dup_cell_cycle_len <- cell_cycle_ensembl_ids_len %>% filter(duplicated(cell_cycle_ensembl_ids_len$hgnc_symbol) == TRUE)
-dup_cell_cycle_len
-##   hgnc_symbol ensembl_gene_id
-## 1     GOLGA8M ENSG00000188626
-## 2       PINX1 ENSG00000254093
-cell_cycle_ensembl_ids_len %>% filter(hgnc_symbol %in% dup_cell_cycle_len$hgnc_symbol)
-##   hgnc_symbol ensembl_gene_id
-## 1     GOLGA8M ENSG00000261480
-## 2     GOLGA8M ENSG00000188626
-## 3       PINX1 ENSG00000258724
-## 4       PINX1 ENSG00000254093
-### These two genes have multiple Ensembl IDs but the portion in the gene set is very small; so, we removed neither of them
-
-cell_cycle_list_len <- list(Cell_Cycle_Gene_Set = cell_cycle_ensembl_ids_len$ensembl_gene_id)
-CC.epi_filter_len <- escape.matrix(epi_filter_len, 
-                                   method = "AUCell",
-                                   gene.sets = cell_cycle_list_len, 
-                                   groups = 3000, 
-                                   min.size = 5
-                                   )
-
-epi_filter_len <- AddMetaData(epi_filter_len, metadata = CC.epi_filter_len)
