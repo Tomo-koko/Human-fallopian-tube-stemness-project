@@ -1,5 +1,5 @@
 
-# Fix seed and figure font
+# Fix seed
 set.seed(42)
 
 # Calculate the Ret/Red after adding very small number (0.01) to the tpm values in order to avoid "division by zero"
