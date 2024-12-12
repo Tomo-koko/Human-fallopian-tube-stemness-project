@@ -14,3 +14,6 @@ tar zxvf udunits-2.2.28.tar.gz
 cd  udunits-2.2.28
 ./configure -prefix=/rshare1/home/<username>/udunits
 make install
+
+# Create a directory (~/output/) to store pdf files
+mkdir -p /home/<username>/output/
