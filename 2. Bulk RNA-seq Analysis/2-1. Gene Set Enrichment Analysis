@@ -37,6 +37,11 @@ ranked_bulk_vector <- setNames(bulk_pkh_rank$gene_rank, bulk_pkh_rank$Gene_Symbo
 plotEnrichment(GOBP[["GOBP_CELL_CYCLE"]],
                ranked_bulk_vector) + labs(title="GOBP_CELL_CYCLE")
 
+pdf("~/output/GSEA_cell_cycle.pdf", width = 8, height = 8)
+plotEnrichment(GOBP[["GOBP_CELL_CYCLE"]],
+               ranked_bulk_vector) + labs(title="GOBP_CELL_CYCLE")
+dev.off()
+
 # Perform GSEA in terms of hallmark gene sets
 get_hallmark <- function(species = "Homo sapiens", category = "H") {
   msigdbr(species = species, category = category) %>%
@@ -50,3 +55,7 @@ topPathwaysUp_hallmark <- fgsea_hallmark[NES > 0][head(order(pval), n=10), pathw
 topPathwaysDown_hallmark <- fgsea_hallmark[NES < 0][head(order(pval), n=10), pathway]
 topPathways_hallmark <- c(topPathwaysUp_hallmark, rev(topPathwaysDown_hallmark))
 plotGseaTable(hallmark[topPathways_hallmark], ranked_bulk_vector, fgsea_hallmark, colwidths = c(30, 20, 6, 8, 8))
+
+pdf("~/output/GSEA_hallmark.pdf", width = 20, height = 12)
+plotGseaTable(hallmark[topPathways_hallmark], ranked_bulk_vector, fgsea_hallmark, colwidths = c(30, 20, 6, 8, 8))
+dev.off()
