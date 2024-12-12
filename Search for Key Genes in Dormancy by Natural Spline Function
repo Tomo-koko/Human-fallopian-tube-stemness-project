@@ -1,7 +1,6 @@
 
-# Fix seed and figure font
+# Fix seed
 set.seed(42)
-theme_set(theme_gray(base_family = "Arial"))
 
 # Define key genes in both scRNA-seq data
 Key_Genes <- intersect(important_gene_ids_len, important_gene_ids_ul)
