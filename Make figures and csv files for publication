@@ -1,5 +1,0 @@
-
-# Fix seed and figure font
-set.seed(42)
-theme_set(theme_gray(base_family = "Arial"))
-
