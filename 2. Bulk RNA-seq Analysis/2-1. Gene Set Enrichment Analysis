@@ -25,7 +25,19 @@ head(bulk_pkh)
 bulk_pkh_rank <- bulk_pkh %>%
   mutate(`gene_rank` = log2((`PKH-R3(retained)_TPM` + 0.01) / (`PKH-R6(reduced)_TPM` + 0.01)))
 
-# Perform gene set enrichment analysis (GSEA) in terms of "hallmark gene sets"
+# Perform gene set enrichment analysis (GSEA) in terms of GOBP_CELL_CYCLE
+get_GOBP <- function(species = "Homo sapiens", category = "C5", subcategory = "BP") {
+  msigdbr(species = species, category = category, subcategory = subcategory) %>%
+    split(.$gs_name) %>% 
+    lapply(function(x) unique(x$gene_symbol)) 
+}
+GOBP <- get_GOBP()
+
+ranked_bulk_vector <- setNames(bulk_pkh_rank$gene_rank, bulk_pkh_rank$Gene_Symbol)
+plotEnrichment(GOBP[["GOBP_CELL_CYCLE"]],
+               ranked_bulk_vector) + labs(title="GOBP_CELL_CYCLE")
+
+# Perform GSEA in terms of hallmark gene sets
 get_hallmark <- function(species = "Homo sapiens", category = "H") {
   msigdbr(species = species, category = category) %>%
     split(.$gs_name) %>% 
@@ -33,7 +45,6 @@ get_hallmark <- function(species = "Homo sapiens", category = "H") {
 }
 hallmark <- get_hallmark()
 
-ranked_bulk_vector <- setNames(bulk_pkh_rank$gene_rank, bulk_pkh_rank$Gene_Symbol)
 fgsea_hallmark <- fgsea(pathways = hallmark, stats = ranked_bulk_vector)
 topPathwaysUp_hallmark <- fgsea_hallmark[NES > 0][head(order(pval), n=10), pathway]
 topPathwaysDown_hallmark <- fgsea_hallmark[NES < 0][head(order(pval), n=10), pathway]
