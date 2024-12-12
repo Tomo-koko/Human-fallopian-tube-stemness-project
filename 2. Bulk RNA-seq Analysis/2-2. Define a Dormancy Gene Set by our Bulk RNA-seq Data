@@ -26,7 +26,7 @@ ggplot(bulk_pkh_filtered, aes(x = `log[PKH26-retained_TPM]`, y = `log[Normalized
   scale_x_continuous(limits = c(0, max_x)) +  
   scale_y_continuous(limits = c(0, max_y)) +  
   labs(
-    title = "Scatter Plot",
+    title = "bRNA-seq Expression Graph",
     x = "log[PKH26-retained_TPM]",
     y = "log[Normalized Ret/Red]"
   ) +
@@ -46,7 +46,7 @@ ggplot(bulk_pkh_filtered, aes(x = `log[PKH26-retained_TPM]`, y = `log[Normalized
   scale_x_continuous(limits = c(0, max_x)) +  
   scale_y_continuous(limits = c(0, max_y)) +  
   labs(
-    title = "Scatter Plot",
+    title = "bRNA-seq Expression Graph",
     x = "log[PKH26-retained_TPM]",
     y = "log[Normalized Ret/Red]"
   ) +
