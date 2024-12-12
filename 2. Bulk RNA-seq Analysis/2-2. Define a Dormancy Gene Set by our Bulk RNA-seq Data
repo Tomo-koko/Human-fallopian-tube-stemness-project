@@ -1,7 +1,6 @@
 
 # Fix seed and figure font
 set.seed(42)
-theme_set(theme_gray(base_family = "Arial"))
 
 # Calculate the Ret/Red after adding very small number (0.01) to the tpm values in order to avoid "division by zero"
 bulk_pkh <- bulk_pkh %>%
@@ -35,6 +34,27 @@ ggplot(bulk_pkh_filtered, aes(x = `log[PKH26-retained_TPM]`, y = `log[Normalized
   theme(
     plot.title = element_text(hjust = 0.5)  
   )
+
+pdf("~/output/Dormancy_gene_set_graph.pdf", width = 8, height = 8)
+ggplot(bulk_pkh_filtered, aes(x = `log[PKH26-retained_TPM]`, y = `log[Normalized Ret/Red]`)) +
+  geom_point(color = "blue", alpha = 0.7) + 
+  geom_function(
+    fun = function(x) 2 / x,  
+    color = "red",
+    linetype = "dashed"
+  ) +
+  scale_x_continuous(limits = c(0, max_x)) +  
+  scale_y_continuous(limits = c(0, max_y)) +  
+  labs(
+    title = "Scatter Plot",
+    x = "log[PKH26-retained_TPM]",
+    y = "log[Normalized Ret/Red]"
+  ) +
+  theme_minimal() +  
+  theme(
+    plot.title = element_text(hjust = 0.5)  
+  )
+dev.off()
 
 # Extract the important genes by the inequality [log[PKH26-retained_TPM]*log[Normalized Ret/Red]] > 2
 important_genes <- bulk_pkh_filtered %>%
