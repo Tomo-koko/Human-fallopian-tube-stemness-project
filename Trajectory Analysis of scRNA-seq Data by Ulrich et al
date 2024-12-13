@@ -8,7 +8,7 @@ output_file_ul <- "116cae82-6420-48a8-af2f-bc9f64545788.rds"
 download.file(url_ul, destfile = output_file_ul)
 sc_ul <- readRDS(output_file_ul)
 length(sc_ul@assays$RNA@counts@Dimnames[[2]])
-## 
+## 59738
 
 # Extract epithelial cells by the expression of EpCAM (ENSG00000119888) and CDH1 (ENSG00000039068)
 sc_ul@meta.data$cell_type <- NULL
@@ -504,4 +504,4 @@ pseudo_results_ul <- graph_test(cds_ul, neighbor_graph="principal_graph", cores=
 q_val_0_list_ul <- subset(pseudo_results_ul, q_value == 0)
 important_gene_ids_ul <- row.names(q_val_0_list_ul)
 length(important_gene_ids_ul)
-## 
+## 4157
