@@ -51,16 +51,13 @@ fitted_values_ul <- as.vector(ns_basis_ul %*% coef_ul)
 fitted_values_ul <- fitted_values_ul + intercept_ul
 
 plot_data_len <- data.frame(pseudotime = pseudotime_len,
-                            expression = expr_len,
                             fitted = fitted_values_len) 
 
-plot_data_ul <- data.frame(pseudotime = pseudotime_ul, 
-                           expression = expr_ul,
+plot_data_ul <- data.frame(pseudotime = pseudotime_ul,
                            fitted = fitted_values_ul) 
 
 ggplot(plot_data_len, aes(x = pseudotime)) +  
   geom_line(aes(y = fitted), color = "blue") + 
-  geom_point(aes(y = expression), color = "red") +
   labs(title = paste("Spline Fit: LCN2 [Lengyel et al]"),
        x = "Pseudotime",
        y = "Normalized LCN2 Expression") +
@@ -69,7 +66,6 @@ ggplot(plot_data_len, aes(x = pseudotime)) +
 pdf("~/output/LCN2_spline_len.pdf", width = 8, height = 8)
 ggplot(plot_data_len, aes(x = pseudotime)) +  
   geom_line(aes(y = fitted), color = "blue") + 
-  geom_point(aes(y = expression), color = "red") +
   labs(title = paste("Spline Fit: LCN2 [Lengyel et al]"),
        x = "Pseudotime",
        y = "Normalized LCN2 Expression") +
@@ -78,7 +74,6 @@ dev.off()
 
 ggplot(plot_data_ul, aes(x = pseudotime)) +
   geom_line(aes(y = fitted), color = "blue") +   
-  geom_point(aes(y = expression), color = "red") +
   labs(title = paste("Spline Fit: LCN2 [Ulrich et al]"),
        x = "Pseudotime",
        y = "Normalized LCN2 Expression") +
@@ -87,7 +82,6 @@ ggplot(plot_data_ul, aes(x = pseudotime)) +
 pdf("~/output/LCN2_spline_ul.pdf", width = 8, height = 8)
 ggplot(plot_data_ul, aes(x = pseudotime)) +
   geom_line(aes(y = fitted), color = "blue") +   
-  geom_point(aes(y = expression), color = "red") +
   labs(title = paste("Spline Fit: LCN2 [Ulrich et al]"),
        x = "Pseudotime",
        y = "Normalized LCN2 Expression") +
