@@ -17,3 +17,6 @@ make install
 
 # Create a directory (~/output/) to store pdf files
 mkdir -p /home/<username>/output/
+
+# Send the last output file to local PC
+scp -r <username>@slogin.hgc.jp:~/output/ ~/Desktop/
