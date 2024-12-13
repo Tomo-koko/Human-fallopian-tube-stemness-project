@@ -529,4 +529,4 @@ pseudo_results_len <- graph_test(cds_len, neighbor_graph="principal_graph", core
 q_val_0_list_len <- subset(pseudo_results_len, q_value == 0)
 important_gene_ids_len <- row.names(q_val_0_list_len)
 length(important_gene_ids_len)
-## 
+## 1363
