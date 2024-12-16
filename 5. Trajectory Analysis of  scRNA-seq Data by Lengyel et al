@@ -141,7 +141,7 @@ epi_filter_len <- AddMetaData(epi_filter_len, metadata = ES.epi_filter_len)
 
 # Create a PROGENy object from the scRNA-seq data by Lengyel et al
 prog_expr_len <- as.matrix(epi_filter_len@assays$RNA$data) ## Extract the normalized expression data from the scRNA-seq data by Lengyel et al
-prog_expr_len <- prog_expr_len + 0.01 ## Add a very small number to avoid "division by zero"
+prog_expr_len <- prog_expr_len + 0.01 ## Add a very small number to normalized the expression values to log-scale
 prog_expr_len <- log10(prog_expr_len) ## Change the expression value to log-scale
 prog_ensembl_len <- rownames(prog_expr_len)
 
