@@ -133,7 +133,7 @@ epi_filter_ul <- AddMetaData(epi_filter_ul, metadata = ES.epi_filter_ul)
 
 # Create a PROGENy object from the scRNA-seq data by Ulrich et al
 prog_expr_ul <- as.matrix(epi_filter_ul@assays$RNA$data) ## Extract the normalized expression data from the scRNA-seq data by Ulrich et al
-prog_expr_ul <- prog_expr_ul + 0.01 ## Add a very small number to avoid "division by zero"
+prog_expr_ul <- prog_expr_ul + 0.01 ##  Add a very small number to normalized the expression values to log-scale
 prog_expr_ul <- log10(prog_expr_ul) ## Change the expression value to log-scale
 prog_ensembl_ul <- rownames(prog_expr_ul)
 
