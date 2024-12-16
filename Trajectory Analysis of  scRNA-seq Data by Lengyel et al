@@ -291,7 +291,7 @@ plot_cells(cds_len,
            label_leaves= FALSE,
            label_branch_points= FALSE,
            graph_label_size= 3,
-           min_expr = 10)
+           min_expr = 5)
 plot_cells(cds_len, 
            gene = "ENSG00000135480",
            cell_size = 1,
@@ -300,7 +300,7 @@ plot_cells(cds_len,
            label_leaves= FALSE,
            label_branch_points= FALSE,
            graph_label_size= 3,
-           min_expr = 10)
+           min_expr = 5)
 plot_cells(cds_len, 
            gene = "ENSG00000085465",
            cell_size = 1,
@@ -309,7 +309,7 @@ plot_cells(cds_len,
            label_leaves= FALSE,
            label_branch_points= FALSE,
            graph_label_size= 3,
-           min_expr = 10)
+           min_expr = 5)
 plot_cells(cds_len, 
            gene = "ENSG00000129654",
            cell_size = 1,
@@ -318,7 +318,7 @@ plot_cells(cds_len,
            label_leaves= FALSE,
            label_branch_points= FALSE,
            graph_label_size= 3,
-           min_expr = 10)
+           min_expr = 5)
 plot_cells(cds_len, 
            gene = "ENSG00000105519",
            cell_size = 1,
@@ -327,7 +327,7 @@ plot_cells(cds_len,
            label_leaves= FALSE,
            label_branch_points= FALSE,
            graph_label_size= 3,
-           min_expr = 10)
+           min_expr = 5)
 
 pdf("~/output/PAX8_len.pdf", width = 8, height = 8)
 plot_cells(cds_len, 
@@ -338,7 +338,7 @@ plot_cells(cds_len,
            label_leaves= FALSE,
            label_branch_points= FALSE,
            graph_label_size= 3,
-           min_expr = 10)
+           min_expr = 5)
 dev.off()
 pdf("~/output/KRT7_len.pdf", width = 8, height = 8)
 plot_cells(cds_len, 
@@ -349,7 +349,7 @@ plot_cells(cds_len,
            label_leaves= FALSE,
            label_branch_points= FALSE,
            graph_label_size= 3,
-           min_expr = 10)
+           min_expr = 5)
 dev.off()
 pdf("~/output/OVGP1_len.pdf", width = 8, height = 8)
 plot_cells(cds_len, 
@@ -360,7 +360,7 @@ plot_cells(cds_len,
            label_leaves= FALSE,
            label_branch_points= FALSE,
            graph_label_size= 3,
-           min_expr = 10)
+           min_expr = 5)
 dev.off()
 pdf("~/output/FOXJ1_len.pdf", width = 8, height = 8)
 plot_cells(cds_len, 
@@ -371,7 +371,7 @@ plot_cells(cds_len,
            label_leaves= FALSE,
            label_branch_points= FALSE,
            graph_label_size= 3,
-           min_expr = 10)
+           min_expr = 5)
 dev.off()
 pdf("~/output/CAPS_len.pdf", width = 8, height = 8)
 plot_cells(cds_len, 
@@ -382,7 +382,7 @@ plot_cells(cds_len,
            label_leaves= FALSE,
            label_branch_points= FALSE,
            graph_label_size= 3,
-           min_expr = 10)
+           min_expr = 5)
 dev.off()
 
 # Examine the activation of the dormancy gene set
