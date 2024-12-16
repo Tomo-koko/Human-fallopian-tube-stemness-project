@@ -4,6 +4,15 @@
 ### Publication URL
 
 # List of code files
+## 0. Appendix for SHIROKANE Users
+## 1. Package Installation
+## 2. Libraries Used in this Analysis
+## 3. Gene Set Enrichment Analysis
+## 4. Define a Dormancy Gene Set by our bRNA-seq Data
+## 5. Trajectory Analysis of  scRNA-seq Data by Lengyel et al
+## 6. Trajectory Analysis of scRNA-seq Data by Ulrich et al
+## 7. Search for Key Genes in Dormancy by Natural Spline Function
+## 8. Make a Final Decision by our bRNA-seq Data
 
 # Important references (scRNA-seq data we used and reanalyzed in the paper)
 ## Lengyel E, Li Y, Weigert M, et al. A molecular atlas of the human postmenopausal fallopian tube and ovary from single-cell RNA and ATAC sequencing. Cell Rep. 2022;41(12):111838. doi:10.1016/j.celrep.2022.111838
