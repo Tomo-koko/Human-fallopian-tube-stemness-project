@@ -34,6 +34,7 @@ get_GOBP <- function(species = "Homo sapiens", category = "C5", subcategory = "B
 GOBP <- get_GOBP()
 
 ranked_bulk_vector <- setNames(bulk_pkh_rank$gene_rank, bulk_pkh_rank$Gene_Symbol)
+ranked_bulk_vector <- sort(ranked_bulk_vector)
 plotEnrichment(GOBP[["GOBP_CELL_CYCLE"]],
                ranked_bulk_vector) + labs(title="GOBP_CELL_CYCLE")
 
