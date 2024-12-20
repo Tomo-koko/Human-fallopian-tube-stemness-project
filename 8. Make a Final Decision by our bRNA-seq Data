@@ -26,6 +26,52 @@ bulk_key_genes
 ## 13 KCNK15                        19.7                 0.918               21.3  
 ## 14 FAM107A                       18.4                14.4                  1.28 
 
+bulk_key_genes_long <- bulk_key_genes %>%
+  pivot_longer(cols = starts_with("PKH"), 
+               names_to = "PKH26_status", 
+               values_to = "TPM")
+bulk_key_genes_long <- bulk_key_genes_long %>%
+  mutate(PKH26_status = case_when(
+    PKH26_status == "PKH-R3(retained)_TPM" ~ "PKH26-retained cells",
+    PKH26_status == "PKH-R6(reduced)_TPM" ~ "PKH26-reduced cells",
+    TRUE ~ PKH26_status 
+  ))
+bulk_key_genes_long$Gene_Symbol <- factor(bulk_key_genes_long$Gene_Symbol, levels = bulk_key_genes$Gene_Symbol)
+
+ggplot(bulk_key_genes_long, aes(x = Gene_Symbol, y = TPM, fill = PKH26_status)) +
+  geom_bar(stat = "identity", position = "dodge", color = "black") +
+  scale_fill_manual(values = c("PKH26-retained cells" = "red", "PKH26-reduced cells" = "orange")) +
+  theme_minimal() +
+  labs(
+    x = "Gene Symbol",
+    y = "TPM",
+    fill = "PKH26_status"
+  ) +
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 0.75),
+    panel.grid.major.y = element_line(color = "gray", linewidth = 0.5, linetype = "dashed"),
+    panel.grid.minor.y = element_blank(),
+    legend.position = "top"
+  )
+
+pdf("~/output/final_key_gene_list.pdf", width = 10, height = 7)
+ggplot(bulk_key_genes_long, aes(x = Gene_Symbol, y = TPM, fill = PKH26_status)) +
+  geom_bar(stat = "identity", position = "dodge", color = "black") +
+  scale_fill_manual(values = c("PKH26-retained cells" = "red", "PKH26-reduced cells" = "orange")) +
+  theme_minimal() +
+  labs(
+    x = "Gene Symbol",
+    y = "TPM",
+    fill = "PKH26_status"
+  ) +
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 0.75),
+    panel.grid.major.y = element_line(color = "gray", linewidth = 0.5, linetype = "dashed"),
+    panel.grid.minor.y = element_blank(),
+    legend.position = "top"
+  )
+dev.off()
+
 # We focused on LCN2 as the most prominent key gene in the stemness of fallopian tube epithelium
 
 # Appendix
