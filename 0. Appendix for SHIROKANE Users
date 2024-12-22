@@ -1,3 +1,7 @@
+
+# Login to SHIROKANE
+qlogin -l os8 -l s_vmem=128G
+
 # Create a directory (~/output/) to store pdf files
 mkdir -p /home/<username>/output/
 
@@ -8,8 +12,7 @@ cd  udunits-2.2.28
 ./configure -prefix=/rshare1/home/<username>/udunits
 make install
 
-# The code files were done under SHIROKANE OS8
-qlogin -l os8 -l s_vmem=128G
+# Set the environment
 module use /usr/local/package/modulefiles
 module load rstudio
 export LD_LIBRARY_PATH=/rshare1/home/<username>/udunits/lib/:${LD_LIBRARY_PATH}
@@ -18,5 +21,5 @@ module load gdal/3.8.2
 module load geos/3.12.1
 QMLSCENE_DEVICE=softwarecontext rstudio
 
-# Send the last output file to local PC
+# Send the last output file to local PC (executed on local PC)
 scp -r <username>@slogin.hgc.jp:~/output/ ~/Desktop/
