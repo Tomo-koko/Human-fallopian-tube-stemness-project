@@ -1,6 +1,6 @@
 
 # Login to SHIROKANE
-qlogin -l os8 -l s_vmem=64G
+qlogin -l os8 -l s_vmem=128G
 
 # Create a directory (~/output/) to store pdf files
 mkdir -p /home/<username>/output/
