@@ -8,7 +8,7 @@ output_file_len <- "9e7dd889-c863-46f9-9ab9-99175e23fd75.rds"
 download.file(url_len, destfile = output_file_len)
 sc_len <- readRDS(output_file_len)
 length(sc_len@assays$RNA@counts@Dimnames[[1]]) ## the number of Ensembl IDs
-## 
+## 60054
 length(sc_len@assays$RNA@counts@Dimnames[[2]]) ## the cell counts
 ## 60574
 
