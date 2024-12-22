@@ -7,7 +7,9 @@ url_ul <- "https://datasets.cellxgene.cziscience.com/116cae82-6420-48a8-af2f-bc9
 output_file_ul <- "116cae82-6420-48a8-af2f-bc9f64545788.rds"
 download.file(url_ul, destfile = output_file_ul)
 sc_ul <- readRDS(output_file_ul)
-length(sc_ul@assays$RNA@counts@Dimnames[[2]])
+length(sc_ul@assays$RNA@counts@Dimnames[[2]]) ## the number of Ensembl IDs
+##
+length(sc_ul@assays$RNA@counts@Dimnames[[2]]) ## the cell counts
 ## 59738
 
 # Extract epithelial cells by the expression of EpCAM (ENSG00000119888) and CDH1 (ENSG00000039068)
