@@ -40,7 +40,7 @@ remotes::install_version("sf", version = "1.0-19", configure.args = c(
 # Install packages with certain versions -2
 devtools::install_github("cole-trapnell-lab/monocle3@v1.3.1")
 
-# We could not install the certain version "fgsea" on Dec 23rd, 2024
+# We could not install the certain version "fgsea" in Dec 2024
 # Please refer to 9. Session Information if you would like to know the version of "fgsea"
 # We installed "fgsea" by the code below instead of "BiocManager::install("fgsea", version = "3.20")"
 remotes::install_github("ctlab/fgsea")
