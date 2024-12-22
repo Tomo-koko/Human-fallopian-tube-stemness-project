@@ -7,8 +7,8 @@ url_ul <- "https://datasets.cellxgene.cziscience.com/116cae82-6420-48a8-af2f-bc9
 output_file_ul <- "116cae82-6420-48a8-af2f-bc9f64545788.rds"
 download.file(url_ul, destfile = output_file_ul)
 sc_ul <- readRDS(output_file_ul)
-length(sc_ul@assays$RNA@counts@Dimnames[[2]]) ## the number of Ensembl IDs
-##
+length(sc_ul@assays$RNA@counts@Dimnames[[1]]) ## the number of Ensembl IDs
+## 36960
 length(sc_ul@assays$RNA@counts@Dimnames[[2]]) ## the cell counts
 ## 59738
 
