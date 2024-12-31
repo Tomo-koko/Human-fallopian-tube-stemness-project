@@ -109,7 +109,7 @@ ggplot(plot_data_len, aes(x = pseudotime)) +
        y = "Normalized LCN2 Expression") +
   theme_minimal()
 
-pdf("~/output/LCN2_spline_len.pdf", width = 8, height = 8)
+pdf("~/output/LCN2_spline_len.pdf", width = 6, height = 6)
 ggplot(plot_data_len, aes(x = pseudotime)) +  
   geom_line(aes(y = fitted), color = "blue") + 
   labs(title = paste("Spline Fit: LCN2 [Lengyel et al]"),
@@ -125,7 +125,7 @@ ggplot(plot_data_ul, aes(x = pseudotime)) +
        y = "Normalized LCN2 Expression") +
   theme_minimal()
 
-pdf("~/output/LCN2_spline_ul.pdf", width = 8, height = 8)
+pdf("~/output/LCN2_spline_ul.pdf", width = 6, height = 6)
 ggplot(plot_data_ul, aes(x = pseudotime)) +
   geom_line(aes(y = fitted), color = "blue") +   
   labs(title = paste("Spline Fit: LCN2 [Ulrich et al]"),
