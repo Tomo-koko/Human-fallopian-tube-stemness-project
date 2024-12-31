@@ -15,7 +15,7 @@ length(sc_ul@assays$RNA@counts@Dimnames[[2]]) ## the cell counts
 # Extract epithelial cells by the expression of EpCAM (ENSG00000119888) and CDH1 (ENSG00000039068)
 sc_ul@meta.data$cell_type <- NULL
 genes_of_epithelial_cell <- c("ENSG00000119888", "ENSG00000039068") 
-expression_data_ul <- FetchData(sc_ul, vars = genes_of_epithelial_cell, slot = "data")
+expression_data_ul <- FetchData(sc_ul, vars = genes_of_epithelial_cell, layer = "data")
 plot_epi_ul <- data.frame(
   Gene1 = expression_data_ul[, "ENSG00000119888"],
   Gene2 = expression_data_ul[, "ENSG00000039068"]
@@ -26,7 +26,6 @@ ggplot(plot_epi_ul, aes(x = Gene1, y = Gene2)) +
   geom_vline(xintercept = 0.1, linetype = "dashed", color = "red") +  
   geom_hline(yintercept = 0.1, linetype = "dashed", color = "blue") + 
   labs(
-    title = "Epithelial characteristics of all cells in the dataset by Ulrich et al",
     x = "Expression of EpCAM",
     y = "Expression of CDH1"
   ) +
@@ -46,7 +45,6 @@ ggplot(plot_epi_ul, aes(x = Gene1, y = Gene2)) +
   geom_vline(xintercept = 0.1, linetype = "dashed", color = "red") +  
   geom_hline(yintercept = 0.1, linetype = "dashed", color = "blue") + 
   labs(
-    title = "Epithelial characteristics of all cells in the dataset by Ulrich et al",
     x = "Expression of EpCAM",
     y = "Expression of CDH1"
   ) +
@@ -244,7 +242,7 @@ plot_cells(cds_ul,
            label_leaves= FALSE,
            label_branch_points= FALSE)
 
-pdf("~/output/batch_removed_donor_id_ul.pdf", width = 8, height = 8)
+pdf("~/output/batch_removed_donor_id_ul.pdf", width = 5, height = 5)
 plot_cells(cds_ul, 
            color_cells_by = "donor_id",
            cell_size = 1,
@@ -306,7 +304,7 @@ plot_cells(cds_ul,
            graph_label_size= 3,
            min_expr = 15)
 
-pdf("~/output/PAX8_ul.pdf", width = 8, height = 8)
+pdf("~/output/PAX8_ul.pdf", width = 5, height = 5)
 plot_cells(cds_ul, 
            gene = "ENSG00000125618",
            cell_size = 1,
@@ -317,7 +315,7 @@ plot_cells(cds_ul,
            graph_label_size= 3,
            min_expr = 15)
 dev.off()
-pdf("~/output/KRT7_ul.pdf", width = 8, height = 8)
+pdf("~/output/KRT7_ul.pdf", width = 5, height = 5)
 plot_cells(cds_ul, 
            gene = "ENSG00000135480",
            cell_size = 1,
@@ -328,7 +326,7 @@ plot_cells(cds_ul,
            graph_label_size= 3,
            min_expr = 15)
 dev.off()
-pdf("~/output/OVGP1_ul.pdf", width = 8, height = 8)
+pdf("~/output/OVGP1_ul.pdf", width = 5, height = 5)
 plot_cells(cds_ul, 
            gene = "ENSG00000085465",
            cell_size = 1,
@@ -339,7 +337,7 @@ plot_cells(cds_ul,
            graph_label_size= 3,
            min_expr = 15)
 dev.off()
-pdf("~/output/FOXJ1_ul.pdf", width = 8, height = 8)
+pdf("~/output/FOXJ1_ul.pdf", width = 5, height = 5)
 plot_cells(cds_ul, 
            gene = "ENSG00000129654",
            cell_size = 1,
@@ -350,7 +348,7 @@ plot_cells(cds_ul,
            graph_label_size= 3,
            min_expr = 15)
 dev.off()
-pdf("~/output/CAPS_ul.pdf", width = 8, height = 8)
+pdf("~/output/CAPS_ul.pdf", width = 5, height = 5)
 plot_cells(cds_ul, 
            gene = "ENSG00000105519",
            cell_size = 1,
@@ -371,7 +369,7 @@ plot_cells(cds_ul,
            label_leaves= FALSE,
            label_branch_points= FALSE)
 
-pdf("~/output/DGS_ul.pdf", width = 9, height = 8)
+pdf("~/output/DGS_ul.pdf", width = 6, height = 5)
 plot_cells(cds_ul, 
            color_cells_by = "Dormancy_Gene_Set",
            cell_size = 1,
@@ -390,7 +388,7 @@ plot_cells(cds_ul,
            label_branch_points= FALSE,
            graph_label_size= 1.5)
 
-pdf("~/output/graph_on_UMAP_ul.pdf", width = 8, height = 8)
+pdf("~/output/graph_on_UMAP_ul.pdf", width = 5, height = 5)
 plot_cells(cds_ul,
            cell_size = 1,
            color_cells_by = "donor_id",
@@ -427,7 +425,7 @@ plot_cells(cds_ul,
            label_branch_points= FALSE,
            graph_label_size= 1.5)
 
-pdf("~/output/pseudotime_ul.pdf", width = 8, height = 8)
+pdf("~/output/pseudotime_ul.pdf", width = 5, height = 5)
 plot_cells(cds_ul,
            color_cells_by = "pseudotime",
            show_trajectory_graph = FALSE,
@@ -452,7 +450,7 @@ plot_genes_in_pseudotime(cds_conv_ul,
                          cell_size = 0.5,
                          min_expr= 1)
 
-pdf("~/output/conv_markers_pseudotime_ul.pdf", width = 8, height = 12)
+pdf("~/output/conv_markers_pseudotime_ul.pdf", width = 5, height = 8)
 plot_genes_in_pseudotime(cds_conv_ul,
                          panel_order = conv_markers,
                          color_cells_by="donor_id",
@@ -470,7 +468,7 @@ plot_cells(cds_ul,
            label_branch_points= FALSE,
            graph_label_size= 1.5)
 
-pdf("~/output/NFkB_ul.pdf", width = 8, height = 8)
+pdf("~/output/NFkB_ul.pdf", width = 5, height = 5)
 plot_cells(cds_ul,
            color_cells_by = "NFkB",
            show_trajectory_graph = FALSE,
@@ -490,7 +488,7 @@ plot_cells(cds_ul,
            label_branch_points= FALSE,
            graph_label_size= 1.5)
 
-pdf("~/output/EGFR_ul.pdf", width = 8, height = 8)
+pdf("~/output/EGFR_ul.pdf", width = 5, height = 5)
 plot_cells(cds_ul,
            color_cells_by = "EGFR",
            show_trajectory_graph = FALSE,
