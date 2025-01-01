@@ -39,7 +39,7 @@ ggplot(plot_epi_ul, aes(x = Gene1, y = Gene2)) +
     hjust = 1, vjust = 1, color = "black", size = 5
   )
 
-  pdf("~/output/epithelial_cell_counts_ul.pdf", width = 8, height = 8)
+  pdf("~/output/epithelial_cell_counts_ul.pdf", width = 5, height = 5)
   ggplot(plot_epi_ul, aes(x = Gene1, y = Gene2)) +
   geom_point(size = 1, alpha = 0.7) +
   geom_vline(xintercept = 0.1, linetype = "dashed", color = "red") +  
