@@ -38,7 +38,7 @@ ranked_bulk_vector <- sort(ranked_bulk_vector)
 plotEnrichment(GOBP[["GOBP_CELL_CYCLE"]],
                ranked_bulk_vector) + labs(title="GOBP_CELL_CYCLE")
 
-pdf("~/output/GSEA_cell_cycle.pdf", width = 8, height = 8)
+pdf("~/output/GSEA_cell_cycle.pdf", width = 6, height = 6)
 plotEnrichment(GOBP[["GOBP_CELL_CYCLE"]],
                ranked_bulk_vector) + labs(title="GOBP_CELL_CYCLE")
 dev.off()
