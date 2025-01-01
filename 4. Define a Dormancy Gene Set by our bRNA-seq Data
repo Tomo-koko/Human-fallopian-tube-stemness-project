@@ -34,7 +34,7 @@ ggplot(bulk_pkh_filtered, aes(x = `log[PKH26-retained_TPM]`, y = `log[Normalized
     plot.title = element_text(hjust = 0.5)  
   )
 
-pdf("~/output/Dormancy_gene_set_graph.pdf", width = 8, height = 8)
+pdf("~/output/Dormancy_gene_set_graph.pdf", width = 5, height = 5)
 ggplot(bulk_pkh_filtered, aes(x = `log[PKH26-retained_TPM]`, y = `log[Normalized Ret/Red]`)) +
   geom_point(color = "blue", alpha = 0.7) + 
   geom_function(
